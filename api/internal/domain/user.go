@@ -10,4 +10,5 @@ type User struct {
 	IsActive       bool         `json:"isActive"`
 	Addresses      []Address    `json:"addresses"`
 	CreditCardData []CreditCard `json:"creditCardData"`
+	IsAdmin        bool         `json:"isAdmin"`
 }

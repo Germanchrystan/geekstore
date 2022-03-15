@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Germanchrystan/GeekStore/api/cmd/server/handler"
+	"github.com/Germanchrystan/GeekStore/api/internal/auth"
 )
 
 type Router interface {
@@ -24,6 +25,7 @@ func NewRouter(r *gin.Engine, db *sql.DB) Router {
 
 func (r *router) MapRoutes() {
 	r.setGroup()
+	r.authRoutes()
 }
 
 func (r *router) setGroup() {
@@ -34,4 +36,6 @@ func (r *router) authRoutes() {
 	authRepo := auth.NewRepository(r.db)
 	authService := auth.NewService(authRepo)
 	authHandler := handler.NewAuthHandler(authService)
+
+	r.rg.POST("/login", authHandler.Login())
 }
