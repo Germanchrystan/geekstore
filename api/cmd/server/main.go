@@ -11,6 +11,7 @@ import (
 	"github.com/Germanchrystan/GeekStore/api/cmd/server/routes"
 )
 
+//=============================================================//
 func main() {
 	_ = godotenv.Load()
 	dbUrl := os.Getenv("DATABASE_URL")
@@ -30,6 +31,9 @@ func main() {
 	}
 }
 
+//=============================================================//
 func throwServerError() {
 	panic(errors.New("Server Connection Error"))
 }
+
+//=============================================================//

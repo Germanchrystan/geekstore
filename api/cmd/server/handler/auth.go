@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	_ "context"
 	_ "strconv"
 
 	"github.com/gin-gonic/gin"
@@ -34,3 +33,18 @@ func (a *Auth) Login() gin.HandlerFunc {
 		return
 	}
 }
+
+//===================================================================//
+func (a *Auth) Register() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.Background()
+		session, err := a.authService.Register(ctx)
+		if err != nil {
+			c.JSON(400, web.NewResponse(400, nil, err.Error()))
+			return
+		}
+		c.JSON(200, web.NewResponse(202, session, ""))
+	}
+}
+
+//===================================================================//
