@@ -43,8 +43,15 @@ func (a *Auth) Register() gin.HandlerFunc {
 			c.JSON(400, web.NewResponse(400, nil, err.Error()))
 			return
 		}
-		c.JSON(200, web.NewResponse(202, session, ""))
+		c.JSON(202, web.NewResponse(202, session, ""))
 	}
 }
 
 //===================================================================//
+func (a *Auth) ActivateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.JSON(200, web.NewResponse(200, "", ""))
+	}
+
+}

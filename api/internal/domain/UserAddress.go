@@ -1,7 +1,7 @@
 package domain
 
-type Session struct {
+type UserAddress struct {
 	ID        string `json:"id"`
 	UserID    string `json:"user_id"`
-	CreatedAt string `json:"createdAt"`
+	AddressID string `json:"address_id"`
 }

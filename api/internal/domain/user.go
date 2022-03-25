@@ -1,7 +1,7 @@
 package domain
 
 type User struct {
-	ID        int    `json:"id"`
+	ID        string `json:"id"`
 	Username  string `json:"username"`
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
@@ -11,6 +11,3 @@ type User struct {
 	IsAdmin   bool   `json:"is_admin"`
 	IsBanned  bool   `json:"is_banned"`
 }
-
-// Addresses      []Address    `json:"addresses"`
-// CreditCardData []CreditCard `json:"creditCardData"`
