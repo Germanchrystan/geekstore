@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Germanchrystan/GeekStore/api/internal/auth"
+	"github.com/Germanchrystan/GeekStore/api/internal/dto"
 	"github.com/Germanchrystan/GeekStore/api/pkg/web"
 )
 
@@ -23,14 +24,19 @@ func NewAuthHandler(as auth.AuthService) *Auth {
 func (a *Auth) Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		session, err := a.authService.Login(ctx)
-		if err != nil {
-			c.JSON(400, web.NewResponse(400, nil, err.Error()))
+		var loginReq dto.Login_Dto
+		if bindingErr := c.ShouldBindJSON(&loginReq); bindingErr != nil {
+			c.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
+			return
+		} else {
+			sessionDTO, err := a.authService.Login(ctx, loginReq)
+			if err != nil {
+				c.JSON(400, web.NewResponse(400, nil, "Wrong Credentials"))
+				return
+			}
+			c.JSON(200, web.NewResponse(200, sessionDTO, ""))
 			return
 		}
-
-		c.JSON(200, web.NewResponse(200, session, ""))
-		return
 	}
 }
 
@@ -38,18 +44,25 @@ func (a *Auth) Login() gin.HandlerFunc {
 func (a *Auth) Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		session, err := a.authService.Register(ctx)
-		if err != nil {
-			c.JSON(400, web.NewResponse(400, nil, err.Error()))
+		var registerReq dto.Register_Dto
+		if bindingErr := c.ShouldBindJSON(&registerReq); bindingErr != nil {
+			c.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
 			return
+		} else {
+			session, err := a.authService.Register(ctx, registerReq)
+			if err != nil {
+				c.JSON(400, web.NewResponse(400, nil, err.Error()))
+				return
+			}
+			c.JSON(202, web.NewResponse(202, session, ""))
 		}
-		c.JSON(202, web.NewResponse(202, session, ""))
 	}
 }
 
 //===================================================================//
 func (a *Auth) ActivateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		//ctx := context.Background()
 
 		c.JSON(200, web.NewResponse(200, "", ""))
 	}
