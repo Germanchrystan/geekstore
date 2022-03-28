@@ -112,10 +112,10 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 
 func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	id := uuid.New().String()
-	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ('?', '?', '?', '?', '?', '?', ?, ?, ?)"
+	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return "", err // errors.New("There was an error while communicating to the database")
+		return "", errors.New("There was an error while communicating to the database")
 	}
 	_, err = stmt.Exec(id, registerDto.Username, registerDto.FirstName, registerDto.LastName, registerDto.Email, registerDto.Password, false, true, false)
 	if err != nil {
