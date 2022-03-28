@@ -45,12 +45,13 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	} else {
 		firstValue = "username"
 	}
+
 	// Querying user
-	query := fmt.Sprintf("SELECT * FROM users WHERE %s=? AND password=?", firstValue)
+	query := fmt.Sprintf("SELECT * FROM users WHERE %s=?", firstValue)
 	row := r.db.QueryRow(query, loginReq.EmailOrUsername, loginReq.Password)
 
 	user := domain.User{}
-	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.IsActive, &user.IsAdmin, &user.IsBanned)
+	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.IsAdmin, &user.IsBanned)
 	if err != nil {
 		return dto.Session_Dto{}, errors.New("Wrong Credentials")
 	}
@@ -62,6 +63,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 	sessionDto := dto.Session_Dto{}
 
+	/* All this retrieving should be worked around with recurrence once it is tested */
 	// Retrieving addresses
 	var addresses []domain.Address
 	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = ?"
@@ -110,10 +112,10 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 
 func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	id := uuid.New().String()
-	query := "INSERT INTO users(id, username, firstname, lastname, email, password, is_active, is_admin, is_banned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ('?', '?', '?', '?', '?', '?', ?, ?, ?)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return "", errors.New("There was an error while communicating to the database")
+		return "", err // errors.New("There was an error while communicating to the database")
 	}
 	_, err = stmt.Exec(id, registerDto.Username, registerDto.FirstName, registerDto.LastName, registerDto.Email, registerDto.Password, false, true, false)
 	if err != nil {

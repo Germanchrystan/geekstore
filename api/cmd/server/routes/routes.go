@@ -25,6 +25,7 @@ func NewRouter(r *gin.Engine, db *sql.DB) Router {
 
 func (r *router) MapRoutes() {
 	r.setGroup()
+
 	r.authRoutes()
 }
 
@@ -38,4 +39,5 @@ func (r *router) authRoutes() {
 	authHandler := handler.NewAuthHandler(authService)
 
 	r.rg.POST("/login", authHandler.Login())
+	r.rg.POST("/register", authHandler.Register())
 }
