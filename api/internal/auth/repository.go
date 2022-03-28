@@ -22,6 +22,7 @@ type AuthRepository interface {
 	BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error
 	MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error
 	//-----------------------------------------------------//
+	IsUserUnique(ctx context.Context, email string, username string) error
 }
 
 //===================================================================//
@@ -46,9 +47,11 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 		firstValue = "username"
 	}
 
-	// Querying user
+	// Querying user by first value
 	query := fmt.Sprintf("SELECT * FROM users WHERE %s=?", firstValue)
-	row := r.db.QueryRow(query, loginReq.EmailOrUsername, loginReq.Password)
+	row := r.db.QueryRow(query, loginReq.EmailOrUsername)
+
+	// Checking password
 
 	user := domain.User{}
 	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.IsAdmin, &user.IsBanned)
@@ -111,17 +114,18 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 }
 
 func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
+	// Creating new user
 	id := uuid.New().String()
 	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return "", errors.New("There was an error while communicating to the database")
+		return "", err //errors.New("There was an error while communicating to the database")
 	}
 	_, err = stmt.Exec(id, registerDto.Username, registerDto.FirstName, registerDto.LastName, registerDto.Email, registerDto.Password, false, true, false)
 	if err != nil {
-		return "", errors.New("There was an error while executing the command")
+		return "", err //errors.New("There was an error while executing the command")
 	}
-	return id, errors.New("Couldn't Register")
+	return id, err
 }
 
 func (r *repository) ActivateUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
@@ -134,6 +138,29 @@ func (r *repository) BanUser(ctx context.Context, req dto.AdminUserAction_Dto) e
 }
 
 func (r *repository) MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error {
+	return nil
+}
+
+//===================================================================//
+
+func (r *repository) IsUserUnique(ctx context.Context, email string, username string) error {
+	// Check email is not repeated
+	var amountUsers int
+
+	checkUniqueEmailQuery := "SELECT COUNT(*) FROM users WHERE email = $1"
+	row := r.db.QueryRow(checkUniqueEmailQuery, email)
+	_ = row.Scan(&amountUsers)
+	if amountUsers > 0 {
+		return errors.New("E-mail already taken")
+	}
+
+	// Check username is not repeated
+	checkUniqueUsernameQuery := "SELECT COUNT(*) FROM users WHERE username = $1"
+	row = r.db.QueryRow(checkUniqueUsernameQuery, username)
+	_ = row.Scan(&amountUsers)
+	if amountUsers > 0 {
+		return errors.New("Username already taken")
+	}
 	return nil
 }
 

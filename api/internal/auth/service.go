@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/base64"
 	"net/mail"
 	_ "regexp"
 
@@ -37,6 +39,17 @@ func (s *service) Login(ctx context.Context, loginReq dto.Login_Dto) (dto.Sessio
 }
 
 func (s *service) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
+	// Checking user is unique
+	isUserUnique := s.repository.IsUserUnique(ctx, registerDto.Email, registerDto.Username)
+	if isUserUnique != nil {
+		return "", isUserUnique
+	}
+
+	// Hashing password
+	hasher := sha1.New()
+	hasher.Write([]byte(registerDto.Password))
+	registerDto.Password = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+
 	return s.repository.Register(ctx, registerDto)
 }
 
