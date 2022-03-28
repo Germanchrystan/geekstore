@@ -34,6 +34,10 @@ func NewService(repository AuthRepository) AuthService {
 //===========================================================//
 
 func (s *service) Login(ctx context.Context, loginReq dto.Login_Dto) (dto.Session_Dto, error) {
+	// Hashing password
+	hasher := sha256.New()
+	hasher.Write([]byte(loginReq.Password))
+	loginReq.Password = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 
 	return s.repository.Login(ctx, loginReq, isEmail(loginReq.EmailOrUsername))
 }

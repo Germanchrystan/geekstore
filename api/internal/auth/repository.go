@@ -48,8 +48,8 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 
 	// Querying user by first value
-	query := fmt.Sprintf("SELECT * FROM users WHERE %s=?", firstValue)
-	row := r.db.QueryRow(query, loginReq.EmailOrUsername)
+	query := fmt.Sprintf("SELECT * FROM users WHERE %s=$1 AND hashed_password = $2", firstValue)
+	row := r.db.QueryRow(query, loginReq.EmailOrUsername, loginReq.Password)
 
 	// Checking password
 
