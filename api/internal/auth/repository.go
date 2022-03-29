@@ -50,19 +50,23 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 
 	// Querying user by first value
 	query := fmt.Sprintf("SELECT * FROM users WHERE %s=$1", firstValue)
+
 	row := r.db.QueryRow(query, loginReq.EmailOrUsername)
+
 	// Retrieving User by first value
 	user := domain.User{}
-	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.IsAdmin, &user.IsBanned)
+	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
 	if err != nil {
 		return dto.Session_Dto{}, errors.New("Wrong Credentials")
 	}
+
 	// Checking password
 	passwordError := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(loginReq.Password))
 	if passwordError != nil {
 		return dto.Session_Dto{}, errors.New("Wrong Credentials")
 	}
 
+	// Checking booleans
 	if !user.IsActive {
 		return dto.Session_Dto{}, errors.New("You must activate this account first")
 	}

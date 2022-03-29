@@ -6,8 +6,8 @@ type User struct {
 	FirstName      string `json:"firstname"`
 	LastName       string `json:"lastname"`
 	Email          string `json:"email"`
-	HashedPassword string `json:"hashed_password"`
 	IsActive       bool   `json:"is_active"`
+	HashedPassword string `json:"hashed_password"`
 	IsAdmin        bool   `json:"is_admin"`
 	IsBanned       bool   `json:"is_banned"`
 }
