@@ -14,31 +14,31 @@ import (
 	"github.com/Germanchrystan/GeekStore/api/internal/dto"
 )
 
-//===================================================================//
+//===================================================================================================//
 type AuthRepository interface {
 	Login(ctx context.Context, loginReq dto.Login_Dto, isEmail bool) (dto.Session_Dto, error)
 	Register(ctx context.Context, registerReq dto.Register_Dto) (string, error)
 	//-----------------------------------------------------//
-	ActivateUser(ctx context.Context, req dto.AdminUserAction_Dto) error
+	ActivateUser(ctx context.Context, user_id string) error
 	BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error
 	MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error
 	//-----------------------------------------------------//
 	IsUserUnique(ctx context.Context, email string, username string) error
 }
 
-//===================================================================//
+//===================================================================================================//
 type repository struct {
 	db *sql.DB
 }
 
-//===================================================================//
+//===================================================================================================//
 func NewRepository(db *sql.DB) AuthRepository {
 	return &repository{
 		db: db,
 	}
 }
 
-//===================================================================//
+//===================================================================================================//
 func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail bool) (dto.Session_Dto, error) {
 	// Checking if first value is the email or the username
 	var firstValue string
@@ -122,6 +122,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	return sessionDto, nil
 }
 
+//===================================================================================================//
 func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	// Creating new user
 	id := uuid.New().String()
@@ -137,20 +138,34 @@ func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto)
 	return id, err
 }
 
-func (r *repository) ActivateUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
+//===================================================================================================//
+func (r *repository) ActivateUser(ctx context.Context, user_id string) error {
+	query := "UPDATE users SET is_active=true WHERE _id=$1"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(user_id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
 
+//===================================================================================================//
 func (r *repository) BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
 	return nil
 }
 
+//===================================================================================================//
 func (r *repository) MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error {
 	return nil
 }
 
-//===================================================================//
+//===================================================================================================//
 
 func (r *repository) IsUserUnique(ctx context.Context, email string, username string) error {
 	// Check email is not repeated
@@ -173,4 +188,4 @@ func (r *repository) IsUserUnique(ctx context.Context, email string, username st
 	return nil
 }
 
-//===================================================================//
+//===================================================================================================//

@@ -40,4 +40,5 @@ func (r *router) authRoutes() {
 
 	r.rg.POST("/login", authHandler.Login())
 	r.rg.POST("/register", authHandler.Register())
+	r.rg.PATCH("/activate/:id", authHandler.ActivateUser())
 }

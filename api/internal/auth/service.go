@@ -14,7 +14,7 @@ type AuthService interface {
 	Login(ctx context.Context, loginReq dto.Login_Dto) (dto.Session_Dto, error)
 	Register(ctx context.Context, registerReq dto.Register_Dto) (string, error)
 	//-----------------------------------------------------//
-	ActivateUser(ctx context.Context, req dto.AdminUserAction_Dto) error
+	ActivateUser(ctx context.Context, user_id string) error
 	BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error
 	//-----------------------------------------------------//
 }
@@ -59,8 +59,8 @@ func (s *service) Register(ctx context.Context, registerDto dto.Register_Dto) (s
 }
 
 //===================================================================================================//
-func (s *service) ActivateUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
-	return s.repository.ActivateUser(ctx, req)
+func (s *service) ActivateUser(ctx context.Context, user_id string) error {
+	return s.repository.ActivateUser(ctx, user_id)
 }
 
 //===================================================================================================//

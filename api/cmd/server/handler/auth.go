@@ -63,18 +63,14 @@ func (a *Auth) Register() gin.HandlerFunc {
 func (a *Auth) ActivateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		var req dto.AdminUserAction_Dto
-		if bindingErr := c.ShouldBindJSON(&req); bindingErr != nil {
-			c.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
+		// Parsing param ID
+		user_id, _ := c.Params.Get("id")
+		err := a.authService.ActivateUser(ctx, user_id)
+		if err != nil {
+			c.JSON(400, web.NewResponse(400, nil, err.Error()))
 			return
-		} else {
-			err := a.authService.ActivateUser(ctx, req)
-			if err != nil {
-				c.JSON(400, web.NewResponse(400, nil, err.Error()))
-				return
-			}
-			c.JSON(200, web.NewResponse(200, "User activated", ""))
 		}
+		c.JSON(200, web.NewResponse(200, "User activated", ""))
 	}
 }
 
