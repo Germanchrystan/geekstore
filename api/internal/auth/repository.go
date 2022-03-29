@@ -104,13 +104,14 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 		UserID:    user.ID,
 		CreatedAt: time.Now().GoString(),
 	}
-	sessionQuery := "INSET INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3)"
+	sessionQuery := "INSERT INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3)"
 	stmt, err := r.db.Prepare(sessionQuery)
 	if err != nil {
 		return dto.Session_Dto{}, errors.New("Unable to create session")
 	}
 	_, err = stmt.Exec(newSession.ID, newSession.UserID, newSession.CreatedAt)
 	if err != nil {
+		fmt.Println(err.Error())
 		return dto.Session_Dto{}, errors.New("Unable to create session")
 	}
 
