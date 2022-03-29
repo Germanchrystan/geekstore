@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/Germanchrystan/GeekStore/api/internal/domain"
 	"github.com/Germanchrystan/GeekStore/api/internal/dto"
@@ -48,16 +49,20 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 
 	// Querying user by first value
-	query := fmt.Sprintf("SELECT * FROM users WHERE %s=$1 AND hashed_password = $2", firstValue)
-	row := r.db.QueryRow(query, loginReq.EmailOrUsername, loginReq.Password)
-
-	// Checking password
-
+	query := fmt.Sprintf("SELECT * FROM users WHERE %s=$1", firstValue)
+	row := r.db.QueryRow(query, loginReq.EmailOrUsername)
+	// Retrieving User by first value
 	user := domain.User{}
 	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.IsAdmin, &user.IsBanned)
 	if err != nil {
 		return dto.Session_Dto{}, errors.New("Wrong Credentials")
 	}
+	// Checking password
+	passwordError := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(loginReq.Password))
+	if passwordError != nil {
+		return dto.Session_Dto{}, errors.New("Wrong Credentials")
+	}
+
 	if !user.IsActive {
 		return dto.Session_Dto{}, errors.New("You must activate this account first")
 	}
@@ -69,8 +74,8 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	/* All this retrieving should be worked around with recurrence once it is tested */
 	// Retrieving addresses
 	var addresses []domain.Address
-	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = ?"
-	aRows, err := r.db.Query(addressesQuery)
+	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = $1"
+	aRows, err := r.db.Query(addressesQuery, user.ID)
 	if err == nil {
 		a := domain.Address{}
 		_ = aRows.Scan(&a.Street, &a.StreetNumber, &a.State, &a.Country, &a.Zipcode)
@@ -79,8 +84,8 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 
 	// Retrieving credit cards
 	var creditCards []dto.DisplayCreditCard_DTO
-	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=?"
-	ccRows, err := r.db.Query(creditCardsQuery)
+	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=$1"
+	ccRows, err := r.db.Query(creditCardsQuery, user.ID)
 	if err == nil {
 		for ccRows.Next() {
 			cc := dto.DisplayCreditCard_DTO{}
@@ -95,7 +100,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 		UserID:    user.ID,
 		CreatedAt: time.Now().GoString(),
 	}
-	sessionQuery := "INSET INTO sessions(id, user_id, created_at) VALUES (?, ?, ?)"
+	sessionQuery := "INSET INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3)"
 	stmt, err := r.db.Prepare(sessionQuery)
 	if err != nil {
 		return dto.Session_Dto{}, errors.New("Unable to create session")

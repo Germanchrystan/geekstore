@@ -2,12 +2,11 @@ package auth
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"net/mail"
 
 	"github.com/Germanchrystan/GeekStore/api/internal/dto"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //===========================================================//
@@ -32,16 +31,13 @@ func NewService(repository AuthRepository) AuthService {
 }
 
 //===========================================================//
-
+//===================================================================================================//
 func (s *service) Login(ctx context.Context, loginReq dto.Login_Dto) (dto.Session_Dto, error) {
-	// Hashing password
-	hasher := sha256.New()
-	hasher.Write([]byte(loginReq.Password))
-	loginReq.Password = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 
 	return s.repository.Login(ctx, loginReq, isEmail(loginReq.EmailOrUsername))
 }
 
+//===================================================================================================//
 func (s *service) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	// Checking email is correct
 	isEmailCorrect := isEmail(registerDto.Email)
@@ -56,25 +52,28 @@ func (s *service) Register(ctx context.Context, registerDto dto.Register_Dto) (s
 	}
 
 	// Hashing password
-	hasher := sha256.New()
-	hasher.Write([]byte(registerDto.Password))
-	registerDto.Password = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	hashed_password, _ := bcrypt.GenerateFromPassword([]byte(registerDto.Password), 10)
+	registerDto.Password = string(hashed_password)
 
 	return s.repository.Register(ctx, registerDto)
 }
 
+//===================================================================================================//
 func (s *service) ActivateUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
 	return s.repository.ActivateUser(ctx, req)
 }
 
+//===================================================================================================//
 func (s *service) BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
 	return s.repository.BanUser(ctx, req)
 }
 
+//===================================================================================================//
 func (s *service) MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error {
 	return s.repository.MakeUserAdmin(ctx, req)
 }
 
+//===================================================================================================//
 //===========================================================//
 
 func isEmail(email string) bool {

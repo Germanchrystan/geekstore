@@ -31,7 +31,7 @@ func (a *Auth) Login() gin.HandlerFunc {
 		} else {
 			sessionDTO, err := a.authService.Login(ctx, loginReq)
 			if err != nil {
-				c.JSON(400, web.NewResponse(400, nil, "Wrong Credentials"))
+				c.JSON(400, web.NewResponse(400, nil, err.Error()))
 				return
 			}
 			c.JSON(200, web.NewResponse(200, sessionDTO, ""))
