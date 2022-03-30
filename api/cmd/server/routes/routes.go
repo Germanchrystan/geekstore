@@ -38,7 +38,7 @@ func (r *router) authRoutes() {
 	authService := auth.NewService(authRepo)
 	authHandler := handler.NewAuthHandler(authService)
 
-	r.rg.POST("/login", authHandler.Login())
-	r.rg.POST("/register", authHandler.Register())
-	r.rg.PATCH("/activate/:id", authHandler.ActivateUser())
+	r.rg.POST("/auth/login", authHandler.Login())
+	r.rg.POST("/auth/register", authHandler.Register())
+	r.rg.PATCH("/auth/activate/:id", authHandler.ActivateUser())
 }

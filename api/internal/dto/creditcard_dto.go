@@ -8,6 +8,11 @@ type InputCreditCard_Dto struct {
 	SecurityCode int    `json:"security_code"`
 }
 
-type DisplayCreditCard_DTO struct {
+type DisplayCreditCard_Dto struct {
 	LastCodeNumbers int `json:"last_code_number"`
+}
+
+type RemoveCreditCard_Dto struct {
+	SessionID    string `json:"session_id"`
+	CreditCardID string `json:"credit_card_id"`
 }

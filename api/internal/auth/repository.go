@@ -75,6 +75,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 	sessionDto := dto.Session_Dto{}
 
+	//--------------------------------------------------------------------------------//
 	/* All this retrieving should be worked around with recurrence once it is tested */
 	// Retrieving addresses
 	var addresses []domain.Address
@@ -87,16 +88,17 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 
 	// Retrieving credit cards
-	var creditCards []dto.DisplayCreditCard_DTO
+	var creditCards []dto.DisplayCreditCard_Dto
 	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=$1"
 	ccRows, err := r.db.Query(creditCardsQuery, user.ID)
 	if err == nil {
 		for ccRows.Next() {
-			cc := dto.DisplayCreditCard_DTO{}
+			cc := dto.DisplayCreditCard_Dto{}
 			_ = ccRows.Scan(&cc.LastCodeNumbers)
 			creditCards = append(creditCards, cc)
 		}
 	}
+	//--------------------------------------------------------------------------------//
 
 	// Creating session
 	newSession := domain.Session{
@@ -111,7 +113,6 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 	_, err = stmt.Exec(newSession.ID, newSession.UserID, newSession.CreatedAt)
 	if err != nil {
-		fmt.Println(err.Error())
 		return dto.Session_Dto{}, errors.New("Unable to create session")
 	}
 
@@ -130,11 +131,11 @@ func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto)
 	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return "", err //errors.New("There was an error while communicating to the database")
+		return "", errors.New("There was an error while communicating to the database")
 	}
 	_, err = stmt.Exec(id, registerDto.Username, registerDto.FirstName, registerDto.LastName, registerDto.Email, registerDto.Password, false, true, false)
 	if err != nil {
-		return "", err //errors.New("There was an error while executing the command")
+		return "", errors.New("There was an error while executing the command")
 	}
 	return id, err
 }
