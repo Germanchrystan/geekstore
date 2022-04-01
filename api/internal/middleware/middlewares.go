@@ -9,8 +9,8 @@ import (
 )
 
 type Middleware interface {
-	isAdminUserSession() gin.HandlerFunc
-	isUserSession() gin.HandlerFunc
+	IsAdminUserSession() gin.HandlerFunc
+	IsUserSession() gin.HandlerFunc
 }
 
 //===================================================================================================//
@@ -26,7 +26,7 @@ func NewMiddlewareRepository(db *sql.DB) Middleware {
 }
 
 //===================================================================================================//
-func (m *middlewareRepository) isAdminUserSession() gin.HandlerFunc {
+func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := ctx.Request.Header.Get("session_id")
 
@@ -59,7 +59,7 @@ func (m *middlewareRepository) isAdminUserSession() gin.HandlerFunc {
 }
 
 //===================================================================================================//
-func (m *middlewareRepository) isUserSession() gin.HandlerFunc {
+func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := ctx.Request.Header.Get("session_id")
 		query := "SELECT * FROM sessions WHERE _id=$1"

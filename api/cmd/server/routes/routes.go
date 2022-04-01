@@ -7,6 +7,7 @@ import (
 
 	"github.com/Germanchrystan/GeekStore/api/cmd/server/handler"
 	"github.com/Germanchrystan/GeekStore/api/internal/auth"
+	"github.com/Germanchrystan/GeekStore/api/internal/middleware"
 )
 
 type Router interface {
@@ -17,10 +18,15 @@ type router struct {
 	r  *gin.Engine
 	rg *gin.RouterGroup
 	db *sql.DB
+	m  middleware.Middleware
 }
 
 func NewRouter(r *gin.Engine, db *sql.DB) Router {
-	return &router{r: r, db: db}
+	return &router{
+		r:  r,
+		db: db,
+		m:  middleware.NewMiddlewareRepository(db),
+	}
 }
 
 func (r *router) MapRoutes() {
@@ -40,5 +46,5 @@ func (r *router) authRoutes() {
 
 	r.rg.POST("/auth/login", authHandler.Login())
 	r.rg.POST("/auth/register", authHandler.Register())
-	r.rg.PATCH("/auth/activate/:id", authHandler.ActivateUser())
+	r.rg.PATCH("/auth/activate/:id", r.m.IsAdminUserSession(), authHandler.ActivateUser())
 }
