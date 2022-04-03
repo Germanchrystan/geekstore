@@ -16,6 +16,7 @@ type AuthService interface {
 	//-----------------------------------------------------//
 	ActivateUser(ctx context.Context, user_id string) error
 	BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error
+	ToggleUserAdmin(ctx context.Context, user_id string) error
 	//-----------------------------------------------------//
 }
 
@@ -69,11 +70,11 @@ func (s *service) BanUser(ctx context.Context, req dto.AdminUserAction_Dto) erro
 }
 
 //===================================================================================================//
-func (s *service) MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error {
-	return s.repository.MakeUserAdmin(ctx, req)
+
+func (s *service) ToggleUserAdmin(ctx context.Context, user_id string) error {
+	return s.repository.ToggleUserAdmin(ctx, user_id)
 }
 
-//===================================================================================================//
 //===========================================================//
 
 func isEmail(email string) bool {

@@ -4,13 +4,16 @@ import (
 	"database/sql"
 
 	"github.com/Germanchrystan/GeekStore/api/internal/domain"
-	"github.com/Germanchrystan/GeekStore/api/pkg/web"
 	"github.com/gin-gonic/gin"
 )
 
 type Middleware interface {
 	IsAdminUserSession() gin.HandlerFunc
 	IsUserSession() gin.HandlerFunc
+}
+
+func respondWithError(c *gin.Context, code int, message interface{}) {
+	c.AbortWithStatusJSON(code, gin.H{"error": message})
 }
 
 //===================================================================================================//
@@ -30,31 +33,32 @@ func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := ctx.Request.Header.Get("session_id")
 
-		query := "SELECT * FROM sessions WHERE _id=$1"
+		query := "SELECT user_id FROM sessions WHERE _id=$1"
 		row := m.db.QueryRow(query, session)
 
 		var userID string
 		err := row.Scan(&userID)
 		if err != nil {
-			ctx.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
+			respondWithError(ctx, 400, "Something went wrong")
 			return
 		}
 
-		userQuery := "SELECT * FROM users WHERE _id=$1"
-		user := domain.User{}
+		userQuery := "SELECT is_admin FROM users WHERE _id=$1"
+		var is_admin bool
 		row = m.db.QueryRow(userQuery, userID)
-		err = row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
+		err = row.Scan(is_admin)
 		if err != nil {
-			ctx.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
+			respondWithError(ctx, 400, "Something went wrong")
 			return
 		}
 
-		if !user.IsAdmin {
-			ctx.JSON(400, web.NewResponse(400, nil, "This user cannot perform this action"))
+		if !is_admin {
+			respondWithError(ctx, 400, "This user cannot perform this action")
 			return
+		} else {
+			ctx.Writer.Header().Set("user_id", userID)
+			ctx.Next()
 		}
-		ctx.Writer.Header().Set("user_id", user.ID)
-		ctx.Next()
 	}
 }
 
@@ -62,13 +66,14 @@ func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := ctx.Request.Header.Get("session_id")
-		query := "SELECT * FROM sessions WHERE _id=$1"
+		query := "SELECT user_id FROM sessions WHERE _id=$1"
 		row := m.db.QueryRow(query, session)
 
 		var userID string
 		err := row.Scan(&userID)
 		if err != nil {
-
+			respondWithError(ctx, 400, "Wrong credentials")
+			return
 		}
 
 		userQuery := "SELECT * FROM users WHERE _id=$1"
@@ -76,7 +81,8 @@ func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 		row = m.db.QueryRow(userQuery, userID)
 		err = row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
 		if err != nil {
-
+			respondWithError(ctx, 400, "Wrong credentials")
+			return
 		}
 
 		if user.IsActive {

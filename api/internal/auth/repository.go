@@ -20,8 +20,8 @@ type AuthRepository interface {
 	Register(ctx context.Context, registerReq dto.Register_Dto) (string, error)
 	//-----------------------------------------------------//
 	ActivateUser(ctx context.Context, user_id string) error
+	ToggleUserAdmin(ctx context.Context, user_id string) error
 	BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error
-	MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error
 	//-----------------------------------------------------//
 	IsUserUnique(ctx context.Context, email string, username string) error
 }
@@ -164,6 +164,27 @@ func (r *repository) BanUser(ctx context.Context, req dto.AdminUserAction_Dto) e
 
 //===================================================================================================//
 func (r *repository) MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error {
+	return nil
+}
+
+//===================================================================================================//
+func (r *repository) ToggleUserAdmin(ctx context.Context, user_id string) error {
+	var is_admin bool
+	selectQuery := "SELECT is_admin FROM users WHERE _id=$1"
+	row := r.db.QueryRow(selectQuery, user_id)
+	_ = row.Scan(&is_admin)
+
+	updateQuery := "UPDATE users SET is_admin=$1 WHERE _id=$2"
+	stmt, err := r.db.Prepare(updateQuery)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(!is_admin, user_id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

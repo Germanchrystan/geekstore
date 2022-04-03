@@ -94,3 +94,16 @@ func (a *Auth) BanUser() gin.HandlerFunc {
 }
 
 //===================================================================//
+func (a *Auth) ToggleUserAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.Background()
+		// Parsing param ID
+		user_id, _ := c.Params.Get("id")
+		err := a.authService.ToggleUserAdmin(ctx, user_id)
+		if err != nil {
+			c.JSON(400, web.NewResponse(400, nil, err.Error()))
+			return
+		}
+		c.JSON(200, web.NewResponse(200, "", ""))
+	}
+}
