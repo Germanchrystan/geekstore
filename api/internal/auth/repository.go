@@ -20,8 +20,6 @@ type AuthRepository interface {
 	Register(ctx context.Context, registerReq dto.Register_Dto) (string, error)
 	//-----------------------------------------------------//
 	ActivateUser(ctx context.Context, user_id string) error
-	ToggleUserAdmin(ctx context.Context, user_id string) error
-	BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error
 	//-----------------------------------------------------//
 	IsUserUnique(ctx context.Context, email string, username string) error
 }
@@ -49,7 +47,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	}
 
 	// Querying user by first value
-	query := fmt.Sprintf("SELECT * FROM users WHERE %s=$1", firstValue)
+	query := fmt.Sprintf("SELECT * FROM users WHERE %s=$1;", firstValue)
 
 	row := r.db.QueryRow(query, loginReq.EmailOrUsername)
 
@@ -79,7 +77,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	/* All this retrieving should be worked around with recurrence once it is tested */
 	// Retrieving addresses
 	var addresses []domain.Address
-	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = $1"
+	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = $1;"
 	aRows, err := r.db.Query(addressesQuery, user.ID)
 	if err == nil {
 		a := domain.Address{}
@@ -89,7 +87,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 
 	// Retrieving credit cards
 	var creditCards []dto.DisplayCreditCard_Dto
-	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=$1"
+	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=$1;"
 	ccRows, err := r.db.Query(creditCardsQuery, user.ID)
 	if err == nil {
 		for ccRows.Next() {
@@ -106,7 +104,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 		UserID:    user.ID,
 		CreatedAt: time.Now().GoString(),
 	}
-	sessionQuery := "INSERT INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3)"
+	sessionQuery := "INSERT INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3);"
 	stmt, err := r.db.Prepare(sessionQuery)
 	if err != nil {
 		return dto.Session_Dto{}, errors.New("Unable to create session")
@@ -128,7 +126,7 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	// Creating new user
 	id := uuid.New().String()
-	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return "", errors.New("There was an error while communicating to the database")
@@ -142,7 +140,7 @@ func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto)
 
 //===================================================================================================//
 func (r *repository) ActivateUser(ctx context.Context, user_id string) error {
-	query := "UPDATE users SET is_active=true WHERE _id=$1"
+	query := "UPDATE users SET is_active=true WHERE _id=$1;"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return err
@@ -158,43 +156,12 @@ func (r *repository) ActivateUser(ctx context.Context, user_id string) error {
 }
 
 //===================================================================================================//
-func (r *repository) BanUser(ctx context.Context, req dto.AdminUserAction_Dto) error {
-	return nil
-}
-
-//===================================================================================================//
-func (r *repository) MakeUserAdmin(ctx context.Context, req dto.AdminUserAction_Dto) error {
-	return nil
-}
-
-//===================================================================================================//
-func (r *repository) ToggleUserAdmin(ctx context.Context, user_id string) error {
-	var is_admin bool
-	selectQuery := "SELECT is_admin FROM users WHERE _id=$1"
-	row := r.db.QueryRow(selectQuery, user_id)
-	_ = row.Scan(&is_admin)
-
-	updateQuery := "UPDATE users SET is_admin=$1 WHERE _id=$2"
-	stmt, err := r.db.Prepare(updateQuery)
-	if err != nil {
-		return err
-	}
-
-	_, err = stmt.Exec(!is_admin, user_id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-//===================================================================================================//
 
 func (r *repository) IsUserUnique(ctx context.Context, email string, username string) error {
 	// Check email is not repeated
 	var amountUsers int
 
-	checkUniqueEmailQuery := "SELECT COUNT(*) FROM users WHERE email = $1"
+	checkUniqueEmailQuery := "SELECT COUNT(*) FROM users WHERE email = $1;"
 	row := r.db.QueryRow(checkUniqueEmailQuery, email)
 	_ = row.Scan(&amountUsers)
 	if amountUsers > 0 {
@@ -202,7 +169,7 @@ func (r *repository) IsUserUnique(ctx context.Context, email string, username st
 	}
 
 	// Check username is not repeated
-	checkUniqueUsernameQuery := "SELECT COUNT(*) FROM users WHERE username = $1"
+	checkUniqueUsernameQuery := "SELECT COUNT(*) FROM users WHERE username = $1;"
 	row = r.db.QueryRow(checkUniqueUsernameQuery, username)
 	_ = row.Scan(&amountUsers)
 	if amountUsers > 0 {
