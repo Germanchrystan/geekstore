@@ -15,7 +15,7 @@ type AdminService interface {
 	DeleteProduct(ctx context.Context, product_id string) error
 	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)
 	//-----------------------------------------------------//
-	BanUser(ctx context.Context, user_id string) error
+	ToggleUserBan(ctx context.Context, user_id string) error
 	ToggleUserAdmin(ctx context.Context, user_id string) error
 	//-----------------------------------------------------//
 }
@@ -42,7 +42,7 @@ func (s *service) GetAllUsers(ctx context.Context) ([]domain.User, error) {
 //===========================================================//
 
 func (s *service) PostProduct(ctx context.Context, product domain.Product) (domain.Product, error) {
-
+	return s.repository.PostProduct(ctx, product)
 }
 
 //===========================================================//
@@ -101,7 +101,7 @@ func (s *service) ToggleUserBan(ctx context.Context, user_id string) error {
 //===========================================================//
 
 func (s *service) ToggleUserAdmin(ctx context.Context, user_id string) error {
-
+	return s.repository.ToggleUserAdmin(ctx, user_id)
 }
 
 //===========================================================//
