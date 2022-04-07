@@ -1,7 +1,7 @@
 package domain
 
 type Product struct {
-	ID          string  `json:"id"`
+	ID          string  `json:"_id"`
 	Name        string  `json:"product_name"`
 	Price       float32 `json:"price"`
 	Description string  `json:"product_description"`

@@ -16,6 +16,7 @@ type AdminRepository interface {
 	PostProduct(ctx context.Context, product domain.Product) (domain.Product, error)
 	DeleteProduct(ctx context.Context, product_id string) error
 	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)
+	GetProductById(ctx context.Context, productID string) (domain.Product, error)
 	//-----------------------------------------------------//
 	ToggleUserBan(ctx context.Context, user_id string) error
 	ToggleUserAdmin(ctx context.Context, user_id string) error
@@ -161,3 +162,14 @@ func (r *repository) ToggleUserAdmin(ctx context.Context, user_id string) error 
 }
 
 //===================================================================================================//
+func (r *repository) GetProductById(ctx context.Context, productID string) (domain.Product, error) {
+	var product domain.Product
+	productQuery := "SELECT _id, product_name, price, product_description, subgenre_id, category_id FROM products WHERE _id=$1;"
+
+	row := r.db.QueryRow(productQuery, productID)
+	err := row.Scan(&product.ID, &product.Name, &product.Price, &product.Description, &product.Subgenre, &product.Category)
+	if err != nil {
+		return domain.Product{}, errors.New("Product could not be retrieved")
+	}
+	return product, nil
+}
