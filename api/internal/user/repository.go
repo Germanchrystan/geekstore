@@ -21,7 +21,7 @@ type UserRepository interface {
 	AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id string) (dto.DisplayCreditCard_Dto, error)
 	RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id string) (string, error)
 
-	ToggleProductWhishlist(ctx context.Context, input string) error
+	ToggleProductWhishlist(ctx context.Context, user_id, product_id string) error
 
 	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int) error
 	RemoveProductFromCart(ctx context.Context, user_id, stock_id string) error
@@ -171,8 +171,40 @@ func (r *repository) RemoveCreditCard(ctx context.Context, input dto.RemoveCredi
 
 //===================================================================================================//
 
-func (r *repository) ToggleProductWhishlist(ctx context.Context, input string) error {
+func (r *repository) ToggleProductWhishlist(ctx context.Context, user_id, product_id string) error {
+	var whishlist_id string
+	selectQuery := "SELECT _id FROM whishlists WHERE user_id=$1;"
+	row := r.db.QueryRow(selectQuery, user_id)
+	_ = row.Scan(&whishlist_id)
 
+	var count int
+	findProductInWhishlistQuery := "SELECT COUNT(*) FROM whishlists_products WHERE whishlist_id=$1 AND product_id=$2"
+	row = r.db.QueryRow(findProductInWhishlistQuery, whishlist_id, product_id)
+	_ = row.Scan(&count)
+
+	if count == 0 {
+		insertQuery := "INSERT INTO whishlists_products(\"_id\", \"whishlist_id\", \"product_id\") VALUES($1,$2,$3)"
+		stmt, err := r.db.Prepare(insertQuery)
+		if err != nil {
+			return errors.New("An error occured while adding the product")
+		}
+		_, err = stmt.Exec(uuid.New().String(), whishlist_id, product_id)
+		if err != nil {
+			return errors.New("An error occured while adding the product")
+		}
+		return nil
+	} else {
+		deleteQuery := "DELETE FROM whishlists_products WHERE whishlist_id=$1 AND product_id=$2"
+		stmt, err := r.db.Prepare(deleteQuery)
+		if err != nil {
+			return errors.New("An error occured while deleting the product")
+		}
+		_, err = stmt.Exec(whishlist_id, product_id)
+		if err != nil {
+			return errors.New("An error occured while deleting the product")
+		}
+		return nil
+	}
 }
 
 //===================================================================================================//
