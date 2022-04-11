@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Germanchrystan/GeekStore/api/cmd/server/handler"
+	"github.com/Germanchrystan/GeekStore/api/internal/admin"
 	"github.com/Germanchrystan/GeekStore/api/internal/auth"
 	"github.com/Germanchrystan/GeekStore/api/internal/middleware"
 )
@@ -50,6 +51,16 @@ func (r *router) authRoutes() {
 }
 
 func (r *router) adminRoutes() {
+	adminRepo := admin.NewRepository(r.db)
+	adminService := admin.NewService(adminRepo)
+	adminHandler := handler.NewAdminHandler(adminService)
 
-	//r.rg.PATCH("/admin/toggle/:id", r.m.IsAdminUserSession(), authHandler.ToggleUserAdmin())
+	r.rg.GET("/admin/users", r.m.IsAdminUserSession(), adminHandler.GetAllUsers())
+
+	r.rg.POST("/admin/products", r.m.IsAdminUserSession(), adminHandler.PostProduct())
+	r.rg.DELETE("/admin/products/:id", r.m.IsAdminUserSession(), adminHandler.DeleteProduct())
+	r.rg.PUT("/admin/products/:id", r.m.IsAdminUserSession(), adminHandler.UpdateProduct())
+
+	r.rg.PATCH("/admin/toggle/admin/:id", r.m.IsAdminUserSession(), adminHandler.ToggleUserAdmin())
+	r.rg.PATCH("/admin/toggle/ban/:id", r.m.IsAdminUserSession(), adminHandler.ToggleUserBan())
 }
