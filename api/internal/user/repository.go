@@ -16,9 +16,18 @@ import (
 //===================================================================================================//
 type UserRepository interface {
 	AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id string) (domain.Address, error)
-	AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id string) (dto.DisplayCreditCard_Dto, error)
 	RemoveAddress(ctx context.Context, input dto.RemoveAddress_Dto, user_id string) (string, error)
+
+	AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id string) (dto.DisplayCreditCard_Dto, error)
 	RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id string) (string, error)
+
+	ToggleProductWhishlist(ctx context.Context, input string) error
+
+	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int) error
+	RemoveProductFromCart(ctx context.Context, user_id, stock_id string) error
+
+	IncreaseProductInCart(ctx context.Context, user_id, stock_id string) error
+	DecreaseProductInCart(ctx context.Context, user_id, stock_id string) error
 }
 
 //===================================================================================================//
@@ -158,6 +167,32 @@ func (r *repository) RemoveCreditCard(ctx context.Context, input dto.RemoveCredi
 		return input.CreditCardID, nil
 	}
 	return "", errors.New("An error occured")
+}
+
+//===================================================================================================//
+
+func (r *repository) ToggleProductWhishlist(ctx context.Context, input string) error {
+
+}
+
+//===================================================================================================//
+func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int) error {
+
+}
+
+//===================================================================================================//
+func (r *repository) RemoveProductFromCart(ctx context.Context, user_id, stock_id string) error {
+
+}
+
+//===================================================================================================//
+func (r *repository) IncreaseProductInCart(ctx context.Context, user_id, stock_id string) error {
+
+}
+
+//===================================================================================================//
+func (r *repository) DecreaseProductInCart(ctx context.Context, user_id, stock_id string) error {
+
 }
 
 //===================================================================================================//
