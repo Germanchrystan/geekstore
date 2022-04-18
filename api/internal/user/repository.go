@@ -23,7 +23,7 @@ type UserRepository interface {
 
 	ToggleProductWhishlist(ctx context.Context, user_id, product_id string) error
 
-	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int) error
+	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) error
 	RemoveProductFromCart(ctx context.Context, user_id, stock_id string) error
 
 	IncreaseProductInCart(ctx context.Context, user_id, stock_id string) error
@@ -208,7 +208,26 @@ func (r *repository) ToggleProductWhishlist(ctx context.Context, user_id, produc
 }
 
 //===================================================================================================//
-func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int) error {
+func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) error {
+	cart_id, err := r.GetOrCreateActiveCart(ctx, user_id)
+	if err != nil {
+		return errors.New("Error while retrieving the user's cart.")
+	}
+
+	// Checking if stock is already in cart
+	var order_id string
+	checkStockQuery := "SELECT _id FROM orders WHERE cart_id=$1 AND stock_id=$2;"
+	orderRow := r.db.QueryRow(checkStockQuery, cart_id, stock_id)
+	err = orderRow.Scan(&order_id)
+
+	if err == nil && order_id != "" {
+		// Increase order quantity
+		// TODOOOOOOOOOOOOOOOOOOOOOOOOOO
+		return nil
+	}
+
+	// Add order to cart
+	insertQuery := "INSERT INTO orders(\"_id\",\"stock_id\", \"cart_id\", \"quantity\", \"price\""
 
 }
 
@@ -228,3 +247,27 @@ func (r *repository) DecreaseProductInCart(ctx context.Context, user_id, stock_i
 }
 
 //===================================================================================================//
+
+func (r *repository) GetOrCreateActiveCart(ctx context.Context, user_id string) (string, error) {
+	query := "SELECT (\"_id\") FROM carts WHERE user_id=$1 AND state=\"active\";"
+	row := r.db.QueryRow(query, user_id)
+
+	var cart_id string
+	err := row.Scan(&cart_id)
+
+	// If active cart doesn't exist for user, create a new one
+	if err != nil || cart_id == "" {
+		new_cart_id := uuid.New().String()
+		query = "INSERT INTO carts (\"_id\", \"user_id\", \"state\", \"total\") VALUES ($1,$2,$3,$4);"
+		stmt, err := r.db.Prepare(query)
+		if err != nil {
+			return "", errors.New("There was an error while creating a new cart")
+		}
+		_, err = stmt.Exec(new_cart_id, user_id, "active", 0)
+		if err != nil {
+			return "", errors.New("There was an error while creating a new cart")
+		}
+		return new_cart_id, nil
+	}
+	return cart_id, nil
+}
