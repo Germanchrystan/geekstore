@@ -23,11 +23,11 @@ type UserRepository interface {
 
 	ToggleProductWhishlist(ctx context.Context, user_id, product_id string) error
 
-	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) error
-	RemoveProductFromCart(ctx context.Context, user_id, stock_id string) error
+	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) (string, error)
+	RemoveProductFromCart(ctx context.Context, order_id string) error
 
-	IncreaseProductInCart(ctx context.Context, user_id, stock_id string) error
-	DecreaseProductInCart(ctx context.Context, user_id, stock_id string) error
+	IncreaseProductInCart(ctx context.Context, order_id string) error
+	DecreaseProductInCart(ctx context.Context, order_id string) error
 }
 
 //===================================================================================================//
@@ -208,10 +208,10 @@ func (r *repository) ToggleProductWhishlist(ctx context.Context, user_id, produc
 }
 
 //===================================================================================================//
-func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) error {
+func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) (string, error) {
 	cart_id, err := r.GetOrCreateActiveCart(ctx, user_id)
 	if err != nil {
-		return errors.New("Error while retrieving the user's cart.")
+		return "", errors.New("Error while retrieving the user's cart.")
 	}
 
 	// Checking if stock is already in cart
@@ -222,28 +222,85 @@ func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id str
 
 	if err == nil && order_id != "" {
 		// Increase order quantity
-		// TODOOOOOOOOOOOOOOOOOOOOOOOOOO
-		return nil
+		increaseQuery := "UPDATE orders SET quantity = quantity + $1 WHERE _id = $2;"
+		stmt, err := r.db.Prepare(increaseQuery)
+		if err != nil {
+			return "", errors.New("Error while increasing the order's quantity.")
+		}
+		res, err := stmt.Exec(quantity, order_id)
+		if err != nil {
+			return "", errors.New("Error while increasing the order's quantity.")
+		}
+		affected, err := res.RowsAffected()
+		if affected != 1 {
+			return "", errors.New("More than one row affected while increasing the order's quantity.")
+		}
+		return order_id, nil
 	}
 
 	// Add order to cart
-	insertQuery := "INSERT INTO orders(\"_id\",\"stock_id\", \"cart_id\", \"quantity\", \"price\""
-
+	newOrder_id := uuid.New().String()
+	insertQuery := "INSERT INTO orders (\"_id\",\"stock_id\", \"cart_id\", \"quantity\", \"price\") VALUES ($1,$2,$3,$4,$5)"
+	stmt, err := r.db.Prepare(insertQuery)
+	if err != nil {
+		return "", errors.New("Error while creating order.")
+	}
+	_, err = stmt.Exec(newOrder_id, stock_id, cart_id, quantity, price)
+	if err != nil {
+		return "", errors.New("Error while creating order.")
+	}
+	return newOrder_id, nil
 }
 
 //===================================================================================================//
-func (r *repository) RemoveProductFromCart(ctx context.Context, user_id, stock_id string) error {
-
+func (r *repository) RemoveProductFromCart(ctx context.Context, order_id string) error {
+	deleteQuery := "DELETE FROM orders WHERE _id=$1"
+	stmt, err := r.db.Prepare(deleteQuery)
+	if err != nil {
+		return errors.New("Error while deleting order.")
+	}
+	_, err = stmt.Exec(order_id)
+	if err != nil {
+		return errors.New("Error while deleting order.")
+	}
+	return nil
 }
 
 //===================================================================================================//
-func (r *repository) IncreaseProductInCart(ctx context.Context, user_id, stock_id string) error {
-
+func (r *repository) IncreaseProductInCart(ctx context.Context, order_id string) error {
+	// Increase order quantity
+	increaseQuery := "UPDATE orders SET quantity = quantity + 1 WHERE _id = $1;"
+	stmt, err := r.db.Prepare(increaseQuery)
+	if err != nil {
+		return errors.New("Error while increasing the order's quantity.")
+	}
+	res, err := stmt.Exec(order_id)
+	if err != nil {
+		return errors.New("Error while increasing the order's quantity.")
+	}
+	affected, err := res.RowsAffected()
+	if affected != 1 {
+		return errors.New("More than one row affected while increasing the order's quantity.")
+	}
+	return nil
 }
 
 //===================================================================================================//
-func (r *repository) DecreaseProductInCart(ctx context.Context, user_id, stock_id string) error {
-
+func (r *repository) DecreaseProductInCart(ctx context.Context, order_id string) error {
+	increaseQuery := "UPDATE orders SET quantity = quantity + 1 WHERE _id = $1;"
+	stmt, err := r.db.Prepare(increaseQuery)
+	if err != nil {
+		return errors.New("Error while decreasing the order's quantity.")
+	}
+	res, err := stmt.Exec(order_id)
+	if err != nil {
+		return errors.New("Error while decreasing the order's quantity.")
+	}
+	affected, err := res.RowsAffected()
+	if affected != 1 {
+		return errors.New("More than one row affected while decreasing the order's quantity.")
+	}
+	return nil
 }
 
 //===================================================================================================//
@@ -271,3 +328,5 @@ func (r *repository) GetOrCreateActiveCart(ctx context.Context, user_id string) 
 	}
 	return cart_id, nil
 }
+
+//===================================================================================================//
