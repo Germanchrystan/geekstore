@@ -39,7 +39,7 @@ func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 		var userID string
 		err := row.Scan(&userID)
 		if err != nil {
-			respondWithError(ctx, 400, "Something went wrong")
+			respondWithError(ctx, 401, "Something went wrong")
 			return
 		}
 
@@ -48,12 +48,12 @@ func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 		row = m.db.QueryRow(userQuery, userID)
 		err = row.Scan(is_admin)
 		if err != nil {
-			respondWithError(ctx, 400, "Something went wrong")
+			respondWithError(ctx, 401, "Something went wrong")
 			return
 		}
 
 		if !is_admin {
-			respondWithError(ctx, 400, "This user cannot perform this action")
+			respondWithError(ctx, 401, "This user cannot perform this action")
 			return
 		} else {
 			ctx.Writer.Header().Set("user_id", userID)
@@ -72,7 +72,7 @@ func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 		var userID string
 		err := row.Scan(&userID)
 		if err != nil {
-			respondWithError(ctx, 400, "Wrong credentials")
+			respondWithError(ctx, 302, "Wrong credentials")
 			return
 		}
 
@@ -81,13 +81,16 @@ func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 		row = m.db.QueryRow(userQuery, userID)
 		err = row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
 		if err != nil {
-			respondWithError(ctx, 400, "Wrong credentials")
+			respondWithError(ctx, 302, "Wrong credentials")
 			return
 		}
 
 		if user.IsActive {
 			ctx.Writer.Header().Set("user_id", user.ID)
 			ctx.Next()
+		} else {
+			respondWithError(ctx, 401, "User is not active")
+			return
 		}
 	}
 }

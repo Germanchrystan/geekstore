@@ -9,11 +9,11 @@ import (
 
 //===========================================================//
 type service struct {
-	repository UserRepository
+	repository UserInterface
 }
 
 //===========================================================//
-func NewUserService(repository UserRepository) UserRepository {
+func NewUserService(repository UserInterface) UserInterface {
 	return &service{
 		repository: repository,
 	}

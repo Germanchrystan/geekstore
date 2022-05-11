@@ -14,7 +14,7 @@ import (
 )
 
 //===================================================================================================//
-type UserRepository interface {
+type UserInterface interface {
 	AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id string) (domain.Address, error)
 	RemoveAddress(ctx context.Context, input dto.RemoveAddress_Dto, user_id string) (string, error)
 
@@ -36,7 +36,7 @@ type repository struct {
 }
 
 //===================================================================================================//
-func NewRepository(db *sql.DB) UserRepository {
+func NewRepository(db *sql.DB) UserInterface {
 	return &repository{
 		db: db,
 	}

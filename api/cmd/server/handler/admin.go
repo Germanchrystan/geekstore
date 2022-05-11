@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//===================================================================================================//
 type Admin struct {
 	adminService admin.AdminService
 }
