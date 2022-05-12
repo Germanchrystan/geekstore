@@ -9,6 +9,7 @@ import (
 	"github.com/Germanchrystan/GeekStore/api/internal/admin"
 	"github.com/Germanchrystan/GeekStore/api/internal/auth"
 	"github.com/Germanchrystan/GeekStore/api/internal/middleware"
+	"github.com/Germanchrystan/GeekStore/api/internal/user"
 )
 
 type Router interface {
@@ -63,4 +64,23 @@ func (r *router) adminRoutes() {
 
 	r.rg.PATCH("/admin/toggle/admin/:id", r.m.IsAdminUserSession(), adminHandler.ToggleUserAdmin())
 	r.rg.PATCH("/admin/toggle/ban/:id", r.m.IsAdminUserSession(), adminHandler.ToggleUserBan())
+}
+
+func (r *router) userRoutes() {
+	userRepo := user.NewRepository(r.db)
+	userService := user.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	r.rg.POST("/user/address", r.m.IsUserSession(), userHandler.AddAddress())
+	r.rg.DELETE("/user/address", r.m.IsUserSession(), userHandler.RemoveAddress())
+
+	r.rg.POST("/user/credit", r.m.IsUserSession(), userHandler.AddCreditCard())
+	r.rg.DELETE("/user/credit", r.m.IsUserSession(), userHandler.RemoveCreditCard())
+
+	r.rg.PUT("/user/whishlist/:product_id", r.m.IsUserSession(), userHandler.ToggleProductWhishlist())
+
+	r.rg.POST("/user/order", r.m.IsUserSession(), userHandler.AddProductToCart())
+	r.rg.DELETE("/user/order/product_id", r.m.IsUserSession(), userHandler.RemoveProductFromCart())
+	r.rg.PATCH("/user/order/:order_id/increase", r.m.IsUserSession(), userHandler.IncreaseProductInCart())
+	r.rg.PATCH("/user/order/:order_id/decrease", r.m.IsUserSession(), userHandler.DecreaseProductInCart())
 }
