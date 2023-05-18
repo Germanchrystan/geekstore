@@ -9,7 +9,7 @@ import Home from './pages/home';
 import Header from './components/header';
 //==========================================================//
 
-function Routes() {
+const Routes = () => {
     // const [user, setUser] = useState(() => {
     //     if(localStorage.getItem('ls_gd_userData') !== null){
     //         return JSON.parse(localStorage.getItem('ls_gd_userData')!)
@@ -21,7 +21,7 @@ function Routes() {
             <Route path="/*">
                 <Header />
             </Route>
-            <Route path="/">
+            <Route exact path="/">
                 <Home />
             </Route>
             {/* <Route path="/game/:id">
