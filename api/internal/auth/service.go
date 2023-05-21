@@ -9,12 +9,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//===========================================================//
+// ===========================================================//
 type AuthService interface {
 	Login(ctx context.Context, loginReq dto.Login_Dto) (dto.Session_Dto, error)
 	Register(ctx context.Context, registerReq dto.Register_Dto) (string, error)
 	//-----------------------------------------------------//
 	ActivateUser(ctx context.Context, user_id string) error
+	BanUser(ctx context.Context, user_id string) error
+	ToggleUserAdmin(ctx context.Context, user_id string) (bool, error)
 	//-----------------------------------------------------//
 }
 
@@ -22,21 +24,21 @@ type service struct {
 	repository AuthRepository
 }
 
-//===========================================================//
+// ===========================================================//
 func NewService(repository AuthRepository) AuthService {
 	return &service{
 		repository: repository,
 	}
 }
 
-//===========================================================//
-//===================================================================================================//
+// ===========================================================//
+// ===================================================================================================//
 func (s *service) Login(ctx context.Context, loginReq dto.Login_Dto) (dto.Session_Dto, error) {
 
 	return s.repository.Login(ctx, loginReq, isEmail(loginReq.EmailOrUsername))
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (s *service) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	// Checking email is correct
 	isEmailCorrect := isEmail(registerDto.Email)
@@ -57,12 +59,20 @@ func (s *service) Register(ctx context.Context, registerDto dto.Register_Dto) (s
 	return s.repository.Register(ctx, registerDto)
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (s *service) ActivateUser(ctx context.Context, user_id string) error {
 	return s.repository.ActivateUser(ctx, user_id)
 }
 
-//===========================================================//
+func (s *service) BanUser(ctx context.Context, user_id string) error {
+	return s.repository.BanUser(ctx, user_id)
+}
+
+func (s *service) ToggleUserAdmin(ctx context.Context, user_id string) (bool, error) {
+	return s.repository.ToggleUserAdmin(ctx, user_id)
+}
+
+// ===========================================================//
 func isEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil

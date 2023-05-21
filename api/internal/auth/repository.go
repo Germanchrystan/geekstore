@@ -14,7 +14,7 @@ import (
 	"github.com/Germanchrystan/GeekStore/api/internal/dto"
 )
 
-//===================================================================================================//
+// ===================================================================================================//
 type AuthRepository interface {
 	Login(ctx context.Context, loginReq dto.Login_Dto, isEmail bool) (dto.Session_Dto, error)
 	Register(ctx context.Context, registerReq dto.Register_Dto) (string, error)
@@ -22,21 +22,23 @@ type AuthRepository interface {
 	ActivateUser(ctx context.Context, user_id string) error
 	//-----------------------------------------------------//
 	IsUserUnique(ctx context.Context, email string, username string) error
+	BanUser(ctx context.Context, user_id string) error
+	ToggleUserAdmin(ctx context.Context, user_id string) (bool, error)
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 type repository struct {
 	db *sql.DB
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func NewRepository(db *sql.DB) AuthRepository {
 	return &repository{
 		db: db,
 	}
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail bool) (dto.Session_Dto, error) {
 	// Checking if first value is the email or the username
 	var firstValue string
@@ -74,17 +76,30 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	sessionDto := dto.Session_Dto{}
 
 	//--------------------------------------------------------------------------------//
-	/* All this retrieving should be worked around with recurrence once it is tested */
+	/* All this retrieving should be worked around with concurrence once it is tested */
 	// Retrieving addresses
-	var addresses []domain.Address
-	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = $1;"
-	aRows, err := r.db.Query(addressesQuery, user.ID)
-	if err == nil {
-		a := domain.Address{}
-		_ = aRows.Scan(&a.Street, &a.StreetNumber, &a.State, &a.Country, &a.Zipcode)
-		addresses = append(addresses, a)
+	addresses, err := r.GetAddressesByUserId(user)
+	if err != nil {
+		return dto.Session_Dto{}, errors.New("Error retrieving addresses")
 	}
+	// Retrieving credit cards
+	creditCards, err := r.GetCreditCardsByUserId(user)
+	if err != nil {
+		return dto.Session_Dto{}, errors.New("Error retrieving credit cards")
+	}
+	// Create session
+	newSession, err := r.CreateSession(user)
 
+	sessionDto.User = user
+	sessionDto.Session = newSession
+	sessionDto.Adresses = addresses
+	sessionDto.CreditCards = creditCards
+
+	return sessionDto, nil
+}
+
+// ===================================================================================================//
+func (r *repository) GetCreditCardsByUserId(user domain.User) ([]dto.DisplayCreditCard_Dto, error) {
 	// Retrieving credit cards
 	var creditCards []dto.DisplayCreditCard_Dto
 	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=$1;"
@@ -95,9 +110,28 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 			_ = ccRows.Scan(&cc.LastCodeNumbers)
 			creditCards = append(creditCards, cc)
 		}
+		return creditCards, nil
 	}
-	//--------------------------------------------------------------------------------//
+	return nil, err
+}
 
+// ===================================================================================================//
+
+func (r *repository) GetAddressesByUserId(user domain.User) ([]domain.Address, error) {
+	var addresses []domain.Address
+	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = $1;"
+	aRows, err := r.db.Query(addressesQuery, user.ID)
+	if err == nil {
+		a := domain.Address{}
+		_ = aRows.Scan(&a.Street, &a.StreetNumber, &a.State, &a.Country, &a.Zipcode)
+		addresses = append(addresses, a)
+		return addresses, nil
+	}
+	return nil, err
+}
+
+// ===================================================================================================//
+func (r *repository) CreateSession(user domain.User) (domain.Session, error) {
 	// Creating session
 	newSession := domain.Session{
 		ID:        uuid.New().String(),
@@ -107,22 +141,16 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	sessionQuery := "INSERT INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3);"
 	stmt, err := r.db.Prepare(sessionQuery)
 	if err != nil {
-		return dto.Session_Dto{}, errors.New("Unable to create session")
+		return domain.Session{}, errors.New("Unable to create session")
 	}
 	_, err = stmt.Exec(newSession.ID, newSession.UserID, newSession.CreatedAt)
 	if err != nil {
-		return dto.Session_Dto{}, errors.New("Unable to create session")
+		return domain.Session{}, errors.New("Unable to create session")
 	}
-
-	sessionDto.User = user
-	sessionDto.Session = newSession
-	sessionDto.Adresses = addresses
-	sessionDto.CreditCards = creditCards
-
-	return sessionDto, nil
+	return newSession, nil
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto) (string, error) {
 	// Creating new user
 	id := uuid.New().String()
@@ -138,7 +166,7 @@ func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto)
 	return id, err
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (r *repository) ActivateUser(ctx context.Context, user_id string) error {
 	query := "UPDATE users SET is_active=true WHERE _id=$1;"
 	stmt, err := r.db.Prepare(query)
@@ -178,4 +206,41 @@ func (r *repository) IsUserUnique(ctx context.Context, email string, username st
 	return nil
 }
 
-//===================================================================================================//
+// ===================================================================================================//
+func (r *repository) BanUser(ctx context.Context, user_id string) error {
+	query := "UPDATE users SET is_banned=true WHERE _id=$1;"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(user_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) ToggleUserAdmin(ctx context.Context, user_id string) (bool, error) {
+	var isAlreadyAdmin bool
+	row := r.db.QueryRow("SELECT is_admin FROM users WHERE _id=$1;", user_id)
+	err := row.Scan(&isAlreadyAdmin)
+	if err != nil {
+		return false, err
+	}
+
+	query := "UPDATE users SET is_admin=$1 WHERE _id=$2;"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = stmt.Exec(!isAlreadyAdmin, user_id)
+	if err != nil {
+		return false, err
+	}
+
+	return !isAlreadyAdmin, nil
+
+}
