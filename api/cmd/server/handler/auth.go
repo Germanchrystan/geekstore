@@ -40,7 +40,7 @@ func (a *Auth) Login() gin.HandlerFunc {
 	}
 }
 
-//===================================================================//
+// ===================================================================//
 func (a *Auth) Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
@@ -59,7 +59,7 @@ func (a *Auth) Register() gin.HandlerFunc {
 	}
 }
 
-//===================================================================//
+// ===================================================================//
 func (a *Auth) ActivateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
@@ -74,36 +74,38 @@ func (a *Auth) ActivateUser() gin.HandlerFunc {
 	}
 }
 
-//===================================================================//
-// func (a *Auth) BanUser() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		ctx := context.Background()
-// 		var req dto.AdminUserAction_Dto
-// 		if bindingErr := c.ShouldBindJSON(&req); bindingErr != nil {
-// 			c.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
-// 			return
-// 		} else {
-// 			err := a.authService.BanUser(ctx, req)
-// 			if err != nil {
-// 				c.JSON(400, web.NewResponse(400, nil, err.Error()))
-// 				return
-// 			}
-// 			c.JSON(200, web.NewResponse(200, "User banned", ""))
-// 		}
-// 	}
-// }
+// ===================================================================//
+func (a *Auth) BanUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.Background()
+		if userId, ok := c.GetQuery("user_id"); ok {
+			err := a.authService.BanUser(ctx, userId)
+			if err != nil {
+				c.JSON(400, web.NewResponse(400, nil, err.Error()))
+				return
+			}
+			c.JSON(200, web.NewResponse(200, "User banned", ""))
+		} else {
+			c.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
+			return
+		}
+	}
+}
 
-//===================================================================//
-// func (a *Auth) ToggleUserAdmin() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		ctx := context.Background()
-// 		// Parsing param ID
-// 		user_id, _ := c.Params.Get("id")
-// 		err := a.authService.ToggleUserAdmin(ctx, user_id)
-// 		if err != nil {
-// 			c.JSON(400, web.NewResponse(400, nil, err.Error()))
-// 			return
-// 		}
-// 		c.JSON(200, web.NewResponse(200, "", ""))
-// 	}
-// }
+// ===================================================================//
+func (a *Auth) ToggleUserAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.Background()
+		if userId, ok := c.GetQuery("user_id"); ok {
+			isAdminNow, err := a.authService.ToggleUserAdmin(ctx, userId)
+			if err != nil {
+				c.JSON(400, web.NewResponse(400, nil, err.Error()))
+				return
+			}
+			c.JSON(200, web.NewResponse(200, isAdminNow, ""))
+		} else {
+			c.JSON(400, web.NewResponse(400, nil, "Something went wrong"))
+			return
+		}
+	}
+}
