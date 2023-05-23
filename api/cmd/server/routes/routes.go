@@ -48,7 +48,9 @@ func (r *router) authRoutes() {
 
 	r.rg.POST("/auth/login", authHandler.Login())
 	r.rg.POST("/auth/register", authHandler.Register())
-	r.rg.PATCH("/auth/activate/:id", authHandler.ActivateUser())
+	r.rg.PATCH("/auth/activate", authHandler.ActivateUser())
+	r.rg.PUT("/auth/ban", r.m.IsAdminUserSession(), authHandler.BanUser())
+	r.rg.PUT("/auth/admin", r.m.IsAdminUserSession(), authHandler.ToggleUserAdmin())
 }
 
 func (r *router) adminRoutes() {
