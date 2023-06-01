@@ -1,0 +1,26 @@
+.profile{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &-upper-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 90%;
+
+        &__profile-pic {
+            img {
+                height: 15em;
+                border-radius: 50%;
+            }
+        }
+    }
+    .panel {
+        width: 90%;
+        .panel-list {
+            display: flex;
+            justify-content: space-between;
+        }
+    }
+}

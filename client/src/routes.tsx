@@ -7,6 +7,7 @@ import Home from './pages/home';
 
 //==========================================================//
 import Header from './components/header';
+import Profile from './pages/profile';
 //==========================================================//
 
 const Routes = () => {
@@ -23,6 +24,9 @@ const Routes = () => {
             </Route>
             <Route exact path="/">
                 <Home />
+            </Route>
+            <Route exact path="/profile">
+                <Profile />
             </Route>
             {/* <Route path="/game/:id">
                 <GameDetail />
