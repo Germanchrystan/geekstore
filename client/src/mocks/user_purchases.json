@@ -1,0 +1,25 @@
+[
+    {
+      "id": "1",
+      "user_id": "123",
+      "status": "delivered",
+      "date_created": 32125112,
+      "date_delivered": -1,
+      "cart": {
+        "id": "2",
+        "products": [
+          {
+            "id": "123",
+            "name": "Remera"
+          }
+        ]
+      },
+      "payment": {
+        "method": "credit",
+        "card": {
+          "id": "2",
+          "last_digits": 1234
+        }
+      }
+    }
+  ]

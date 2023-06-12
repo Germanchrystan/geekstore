@@ -1,0 +1,18 @@
+[
+    {
+      "id": "1123",
+      "name": "Remera Rocko",
+      "price": 100,
+      "discount": {
+        "percentage": 30,
+        "discounted_price": 70,
+        "finish_date": 12412412
+      }
+    },
+    {
+      "id": "1123",
+      "name": "Remera Star Wars",
+      "price": 100,
+      "discount": {}
+    }
+  ]
