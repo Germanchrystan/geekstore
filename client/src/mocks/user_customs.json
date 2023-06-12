@@ -1,0 +1,14 @@
+[
+    {
+      "id": "123",
+      "name": "Remera Better Call Saul",
+      "review_status": "pending",
+      "product_type": "shirt"
+    },
+    {
+      "id": "234",
+      "name": "Remera Breaking Bad",
+      "review_status": "approved",
+      "product_type": "shirt"
+    }
+  ]
