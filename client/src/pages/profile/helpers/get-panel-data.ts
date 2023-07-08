@@ -7,22 +7,15 @@ import {
 } from '../constants';
 import { getWhishlist } from '@services/user/whishlist';
 import { getAddresses } from '@services/user/address';
-
-const getUserPurchases = (userId: number) => {
-
-};
-
-const getUserCustoms = (userId: number) => {
-
-};
+import { getPurchases } from '@services/user/purchase';
+import { getCreditCards } from '@services/user/card';
+import { getCustoms } from '@services/user/custom';
 
 const getUserWhishlist = (userId: number) => getWhishlist(userId);
-
+const getUserPurchases = (userId: number) => getPurchases(userId);
+const getUserCustoms = (userId: number) => getCustoms(userId);
 const getUserAddresses = (userId: number) => getAddresses(userId)
-
-const getUserCards = (userId: number) => {
-
-};
+const getUserCards = (userId: number) => getCreditCards(userId);
 
 const getPanelData = (selectedPanel : string, userId: number) => {
     switch (selectedPanel) {

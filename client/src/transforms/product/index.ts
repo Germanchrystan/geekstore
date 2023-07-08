@@ -1,4 +1,4 @@
-export const TransformToProductList = (products: Product[]) => {
+export const TransformToProductList = (products: ProductCard[]): CardProps[] => {
     return products.map((p) => ({
         key: p.id,
         title: p.name,
@@ -6,5 +6,6 @@ export const TransformToProductList = (products: Product[]) => {
         ? String(p.discount.discounterPrice) 
         : String(p.price),
         img: p.img,
+        link: `/product/${p.id}`
     }))
 }
