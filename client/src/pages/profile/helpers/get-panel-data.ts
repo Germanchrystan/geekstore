@@ -5,7 +5,7 @@ import {
     ADDRESSES,
     CARDS
 } from '../constants';
-import { getWhishlist } from '../../../services/user/whishlist';
+import { getWhishlist } from '@services/user/whishlist';
 
 const getUserPurchases = (userId: number) => {
 
