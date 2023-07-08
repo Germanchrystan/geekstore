@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Poster Better Call Saul",
+        "price": "5000",
+        "img": "https://www.ikea.com/us/en/images/products/ribba-frame-black__0638340_pe698864_s5.jpg?f=s",
+        "discount": {
+            "percentage": 50,
+            "discounted_price": 2500,
+            "finish_date": 12412412
+        }
+    },
+    {
+        "id": 2,
+        "name": "Poster Breaking Bad",
+        "price": "7500",
+        "img": "https://www.ikea.com/us/en/images/products/ribba-frame-black__0638340_pe698864_s5.jpg?f=s",
+        "discount": {
+            "percentage": 0
+        }
+    }
+]

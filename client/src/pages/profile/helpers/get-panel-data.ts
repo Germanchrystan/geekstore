@@ -5,29 +5,27 @@ import {
     ADDRESSES,
     CARDS
 } from '../constants';
-import { CardProps } from '../../../components/card';
+import { getWhishlist } from '../../../services/user/whishlist';
 
-const getUserPurchases = (userId: String): [] => {
-
-};
-
-const getUserCustoms = (userId: String) => {
+const getUserPurchases = (userId: number) => {
 
 };
 
-const getUserWhishlist = (userId: String) => {
+const getUserCustoms = (userId: number) => {
 
 };
 
-const getUserAddresses = (userId: String) => {
+const getUserWhishlist = (userId: number) => getWhishlist(userId);
+
+const getUserAddresses = (userId: number) => {
 
 };
 
-const getUserCards = (userId: String) => {
+const getUserCards = (userId: number) => {
 
 };
 
-const getPanelData = (selectedPanel : String, userId: String) => {
+const getPanelData = (selectedPanel : string, userId: number) => {
     switch (selectedPanel) {
         case PURCHASES:
             return getUserPurchases(userId);
