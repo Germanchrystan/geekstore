@@ -1,14 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 
-export type CardProps = {
-    title: string,
-    description: string,
-    img: string,
-    link: string,
-    onClose?: React.MouseEventHandler, 
-};
-
 const Card = ({
     title,
     description,

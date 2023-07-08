@@ -6,6 +6,7 @@ import {
     CARDS
 } from '../constants';
 import { getWhishlist } from '@services/user/whishlist';
+import { getAddresses } from '@services/user/address';
 
 const getUserPurchases = (userId: number) => {
 
@@ -17,9 +18,7 @@ const getUserCustoms = (userId: number) => {
 
 const getUserWhishlist = (userId: number) => getWhishlist(userId);
 
-const getUserAddresses = (userId: number) => {
-
-};
+const getUserAddresses = (userId: number) => getAddresses(userId)
 
 const getUserCards = (userId: number) => {
 

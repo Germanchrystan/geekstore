@@ -1,0 +1,10 @@
+[
+    {
+        "name": "House",
+        "street": "Evergreen",
+        "street_number": "123",
+        "state": "Springfield",
+        "country": "USA",
+        "zipcode": "123A"
+    }
+]

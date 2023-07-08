@@ -1,15 +1,3 @@
-type Product = {
-    id: number;
-    name: string;
-    price: number;
-    img: string;
-    discount: {
-        percentage: number;
-        discounterPrice: number;
-        finishDate: number;
-    }
-}
-
 export const TransformToProductList = (products: Product[]) => {
     return products.map((p) => ({
         key: p.id,
