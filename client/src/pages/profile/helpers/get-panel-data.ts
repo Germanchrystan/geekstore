@@ -5,11 +5,11 @@ import {
     ADDRESSES,
     CARDS
 } from '../constants';
-import { getWhishlist } from '@services/user/whishlist';
-import { getAddresses } from '@services/user/address';
-import { getPurchases } from '@services/user/purchase';
-import { getCreditCards } from '@services/user/card';
-import { getCustoms } from '@services/user/custom';
+import { getWhishlist } from '@services/whishlist'; //'@services/user/whishlist';
+import { getAddresses } from '@services/address';
+import { getPurchases } from '@services/purchase';
+import { getCreditCards } from '@services/credit-card';
+import { getCustoms } from '@services/custom';
 
 const getUserWhishlist = (userId: number) => getWhishlist(userId);
 const getUserPurchases = (userId: number) => getPurchases(userId);

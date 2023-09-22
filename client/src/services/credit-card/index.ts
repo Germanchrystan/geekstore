@@ -1,4 +1,4 @@
-import { TransformToCardList } from '@transforms/cards';
+import { TransformToCardList } from './transforms';
 
 export const getCreditCards = (userId: number) => {
     return fetch(`./../../mocks/user/${userId}/cards.json`)

@@ -1,4 +1,4 @@
-import { TransformToPurchaseList } from "@transforms/purchase";
+import { TransformToPurchaseList } from "./transforms";
 
 export const getPurchases = (userId: number) => {
     return fetch(`./../../mocks/user/${userId}/whishlist.json`)

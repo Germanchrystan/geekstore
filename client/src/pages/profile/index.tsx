@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Button from '../../components/button';
+import getPanelData from './helpers/get-panel-data';
 import panelOptions from './constants';
 import './styles.scss';
 
@@ -8,7 +9,7 @@ const Profile = () => {
     const [selectedPanel, setSelectedPanel] = useState('purchases');
     
     useEffect(() => {
-        // getPanelData(selectedPanel)
+        getPanelData(selectedPanel, 1);
     }, [selectedPanel]);
 
     return (

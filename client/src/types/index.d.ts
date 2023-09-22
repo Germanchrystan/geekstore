@@ -49,3 +49,5 @@ type CardProps = {
     link: string,
     onClose?: React.MouseEventHandler, 
 };
+
+export {}

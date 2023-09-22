@@ -1,0 +1,14 @@
+{
+    // ...yourConfig
+    "settings": {
+      "import/resolver": {
+        "node": {
+          "paths": ["src"],
+          "moduleDirectory": ["node_modules", "src"],
+          "alias": {
+            "@services": "./src/services"
+          }
+        }
+      }
+    }
+  }

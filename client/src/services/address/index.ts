@@ -1,4 +1,4 @@
-import { TransformToAddressList } from '@transforms/address';
+import { TransformToAddressList } from './transforms';
 
 export const getAddresses = (userId: number) => {
     return fetch(`./../../mocks/user/${userId}/addresses.json`)
