@@ -1,3 +1,5 @@
+import type { CustomProductCard, CardProps } from '@types'
+
 export const TransformToCustomList = (customList: CustomProductCard[]): CardProps[] => {
     return customList.map((c) => ({
         title: c.name,

@@ -5,17 +5,17 @@ import {
     ADDRESSES,
     CARDS
 } from '../constants';
-import { getWhishlist } from '@services/whishlist'; //'@services/user/whishlist';
-import { getAddresses } from '@services/address';
-import { getPurchases } from '@services/purchase';
-import { getCreditCards } from '@services/credit-card';
-import { getCustoms } from '@services/custom';
+import { getWhishlistByUserId } from '@services/whishlist'; //'@services/user/whishlist';
+import { getAddressesByUserId } from '@services/address';
+import { getPurchasesByUserId } from '@services/purchase';
+import { getCreditCardsByUserId } from '@services/credit-card';
+import { getCustomsByUserId } from '@services/custom';
 
-const getUserWhishlist = (userId: number) => getWhishlist(userId);
-const getUserPurchases = (userId: number) => getPurchases(userId);
-const getUserCustoms = (userId: number) => getCustoms(userId);
-const getUserAddresses = (userId: number) => getAddresses(userId)
-const getUserCards = (userId: number) => getCreditCards(userId);
+const getUserWhishlist = (userId: number) => getWhishlistByUserId(userId);
+const getUserPurchases = (userId: number) => getPurchasesByUserId(userId);
+const getUserCustoms = (userId: number) => getCustomsByUserId(userId);
+const getUserAddresses = (userId: number) => getAddressesByUserId(userId)
+const getUserCards = (userId: number) => getCreditCardsByUserId(userId);
 
 const getPanelData = (selectedPanel : string, userId: number) => {
     switch (selectedPanel) {

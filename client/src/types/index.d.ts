@@ -1,4 +1,4 @@
-type ProductCard = {
+export interface ProductCard {
     id: number;
     name: string;
     price: number;
@@ -10,7 +10,7 @@ type ProductCard = {
     }
 }
 
-type AddressCard = {
+export interface AddressCard {
     id: number;
     name: string;
     street: string;
@@ -20,14 +20,14 @@ type AddressCard = {
     zipcode: string;
 }
 
-type PurchaseCard = {
+export interface PurchaseCard {
     id: number;
     status: string;
     total: number;
     address_name: string;
 }
 
-type CustomProductCard = {
+export interface CustomProductCard {
     id: number;
     status: string;
     name: string;
@@ -36,13 +36,13 @@ type CustomProductCard = {
     price: number;
 }
 
-type CreditCardList = {
+export interface CreditCardList {
     id: number;
     company: string;
     last_code_number: number;
 }
 
-type CardProps = {
+export interface CardProps {
     title: string,
     description: string,
     img: string,

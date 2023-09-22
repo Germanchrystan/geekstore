@@ -1,3 +1,5 @@
+import type { PurchaseCard, CardProps } from '@types';
+
 export const TransformToPurchaseList = (purchaseList: PurchaseCard[]): CardProps[] => {
     return purchaseList.map(p =>( {
         title: String(p.total),

@@ -1,3 +1,5 @@
+import type { AddressCard, CardProps } from '@types'
+
 export const TransformToAddressList = (addresses: AddressCard[]): CardProps[] => {
     return addresses.map((a) => ({
         title: a.name,

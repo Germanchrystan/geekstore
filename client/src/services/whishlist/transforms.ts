@@ -1,3 +1,5 @@
+import type { ProductCard, CardProps } from '@types'
+
 export const TransformToProductList = (products: ProductCard[]): CardProps[] => {
     return products.map((p) => ({
         key: p.id,
