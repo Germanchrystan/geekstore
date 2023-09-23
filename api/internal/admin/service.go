@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"strconv"
 
 	"github.com/Germanchrystan/GeekStore/api/internal/domain"
 )
@@ -26,7 +27,7 @@ type service struct {
 	repository AdminRepository
 }
 
-//===========================================================//
+// ===========================================================//
 func NewService(repository AdminRepository) AdminService {
 	return &service{
 		repository: repository,
@@ -54,9 +55,9 @@ func (s *service) DeleteProduct(ctx context.Context, product_id string) error {
 //===========================================================//
 
 func (s *service) UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error) {
-	previousProduct, notFoundErr := s.repository.GetProductById(ctx, product.ID)
+	previousProduct, notFoundErr := s.repository.GetProductById(ctx, strconv.Itoa(product.Id))
 	if notFoundErr != nil {
-		return domain.Product{}, errors.New("Product could not be retrieved")
+		return domain.Product{}, errors.New("product could not be retrieved")
 	}
 	// Fetching values of previous product state
 	previousProductValue := reflect.ValueOf(previousProduct)
@@ -86,7 +87,7 @@ func (s *service) UpdateProduct(ctx context.Context, product domain.Product) (do
 	updatedProduct, updateErr := s.repository.UpdateProduct(ctx, product)
 
 	if updateErr != nil {
-		return domain.Product{}, errors.New("Product Could not be updated")
+		return domain.Product{}, errors.New("product Could not be updated")
 	} else {
 		return updatedProduct, nil
 	}
@@ -95,7 +96,7 @@ func (s *service) UpdateProduct(ctx context.Context, product domain.Product) (do
 //===========================================================//
 
 func (s *service) ToggleUserBan(ctx context.Context, user_id string) error {
-	return s.ToggleUserBan(ctx, user_id)
+	return s.repository.ToggleUserBan(ctx, user_id)
 }
 
 //===========================================================//

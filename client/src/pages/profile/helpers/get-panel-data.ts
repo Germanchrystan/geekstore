@@ -11,15 +11,16 @@ import { getPurchasesByUserId } from '@services/purchase';
 import { getCreditCardsByUserId } from '@services/credit-card';
 import { getCustomsByUserId } from '@services/custom';
 
-const getUserWhishlist = (userId: number) => getWhishlistByUserId(userId);
-const getUserPurchases = (userId: number) => getPurchasesByUserId(userId);
-const getUserCustoms = (userId: number) => getCustomsByUserId(userId);
-const getUserAddresses = (userId: number) => getAddressesByUserId(userId)
-const getUserCards = (userId: number) => getCreditCardsByUserId(userId);
+const getUserWhishlist = async(userId: number) => await getWhishlistByUserId(userId);
+const getUserPurchases = async(userId: number) => await getPurchasesByUserId(userId);
+const getUserCustoms = async(userId: number) => await getCustomsByUserId(userId);
+const getUserAddresses = async(userId: number) => await  getAddressesByUserId(userId)
+const getUserCards = async(userId: number) => await getCreditCardsByUserId(userId);
 
 const getPanelData = (selectedPanel : string, userId: number) => {
     switch (selectedPanel) {
         case PURCHASES:
+            console.log(getUserPurchases(userId));
             return getUserPurchases(userId);
         case CUSTOMS:
             return getUserCustoms(userId);

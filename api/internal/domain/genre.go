@@ -1,6 +1,6 @@
 package domain
 
 type Genre struct {
-	ID   string `json:"id"`
+	Id   int    `json:"id"`
 	Name string `json:"theme_name"`
 }

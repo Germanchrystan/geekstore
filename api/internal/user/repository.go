@@ -13,54 +13,54 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//===================================================================================================//
+// ===================================================================================================//
 type UserInterface interface {
-	AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id string) (domain.Address, error)
-	RemoveAddress(ctx context.Context, input dto.RemoveAddress_Dto, user_id string) (string, error)
+	AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id int) (domain.Address, error)
+	RemoveAddress(ctx context.Context, input dto.RemoveAddress_Dto, user_id int) (string, error)
 
-	AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id string) (dto.DisplayCreditCard_Dto, error)
-	RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id string) (string, error)
+	AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id int) (dto.DisplayCreditCard_Dto, error)
+	RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id int) (string, error)
 
-	ToggleProductWhishlist(ctx context.Context, user_id, product_id string) error
+	ToggleProductWhishlist(ctx context.Context, user_id, product_id int) error
 
-	AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) (string, error)
-	RemoveProductFromCart(ctx context.Context, order_id string) error
+	AddProductToCart(ctx context.Context, user_id, stock_id int, quantity int, price float32) (string, error)
+	RemoveProductFromCart(ctx context.Context, order_id int) error
 
-	IncreaseProductInCart(ctx context.Context, order_id string) error
-	DecreaseProductInCart(ctx context.Context, order_id string) error
+	IncreaseProductInCart(ctx context.Context, order_id int) error
+	DecreaseProductInCart(ctx context.Context, order_id int) error
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 type repository struct {
 	db *sql.DB
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func NewRepository(db *sql.DB) UserInterface {
 	return &repository{
 		db: db,
 	}
 }
 
-//===================================================================================================//
-func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id string) (domain.Address, error) {
+// ===================================================================================================//
+func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id int) (domain.Address, error) {
 	// Creating Address
-	address_id := uuid.New().String()
+	// address_id := uuid.New().String()
 	newAddress := domain.Address{
-		ID:           address_id,
+		//Id:           address_id,
 		Street:       input.State,
 		StreetNumber: input.StreetNumber,
 		State:        input.State,
 		Country:      input.Country,
 		Zipcode:      input.Zipcode,
 	}
-	addressQuery := "INSERT INTO addresses(\"_id\", \"street\",\"street_number\",\"state\", \"country\", \"zipcode\") values ($1,$2,$3,$4,$5)"
+	addressQuery := "INSERT INTO addresses(\"street\",\"street_number\",\"state\", \"country\", \"zipcode\") values ($1,$2,$3,$4,$5)"
 	stmt, err := r.db.Prepare(addressQuery)
 	if err != nil {
 		return domain.Address{}, errors.New("An error occured")
 	}
 	_, err = stmt.Exec(
-		newAddress.ID,
+		newAddress.Id,
 		newAddress.Street,
 		newAddress.StreetNumber,
 		newAddress.State, input.Country,
@@ -72,7 +72,7 @@ func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto,
 	}
 	//Creating relation between address and user
 	address_user_id := uuid.New().String()
-	addressUserQuery := "INSERT INTO address_user(\"_id\", \"user_id\", \"address_id\") VALUES($1,$2,$3)"
+	addressUserQuery := "INSERT INTO address_user(\"id\", \"user_id\", \"address_id\") VALUES($1,$2,$3)"
 	stmt, err = r.db.Prepare(addressUserQuery)
 	if err != nil {
 		return domain.Address{}, errors.New("An error occured")
@@ -84,8 +84,8 @@ func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto,
 	return newAddress, nil
 }
 
-//===================================================================================================//
-func (r *repository) AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id string) (dto.DisplayCreditCard_Dto, error) {
+// ===================================================================================================//
+func (r *repository) AddCreditCard(ctx context.Context, input dto.InputCreditCard_Dto, user_id int) (dto.DisplayCreditCard_Dto, error) {
 	// Hashing all credit card data
 	toBeHashedData := fmt.Sprintf("%s%s%d", input.Code, input.ExpiryDate, input.SecurityCode)
 	hashedData, _ := bcrypt.GenerateFromPassword([]byte(toBeHashedData), 10)
@@ -94,19 +94,19 @@ func (r *repository) AddCreditCard(ctx context.Context, input dto.InputCreditCar
 	lastCodeNumbersInt, _ := strconv.Atoi(lastCodeNumbersString)
 	// Creating new credit card struct
 	newCreditCard := domain.CreditCard{
-		ID:              uuid.New().String(),
+		// ID:              uuid.New().String(),
 		UserID:          user_id,
 		HashedData:      string(hashedData),
 		LastCodeNumbers: lastCodeNumbersInt,
 	}
-	creditCardQuery := "INSERT INTO credit_cards(\"_id\",\"user_id\",\"hashed_data\", \"last_code_numbers\") VALUES($1,$2,$3)"
+	creditCardQuery := "INSERT INTO credit_cards(\"user_id\",\"hashed_data\", \"last_code_numbers\") VALUES($1,$2,$3)"
 
 	stmt, err := r.db.Prepare(creditCardQuery)
 	if err != nil {
 		return dto.DisplayCreditCard_Dto{}, errors.New("An error occured")
 	}
 	_, err = stmt.Exec(
-		newCreditCard.ID,
+		newCreditCard.Id,
 		newCreditCard.UserID,
 		newCreditCard.HashedData,
 		newCreditCard.LastCodeNumbers,
@@ -121,9 +121,9 @@ func (r *repository) AddCreditCard(ctx context.Context, input dto.InputCreditCar
 	}, nil
 }
 
-//===================================================================================================//
-func (r *repository) RemoveAddress(ctx context.Context, input dto.RemoveAddress_Dto, user_id string) (string, error) {
-	addressQuery := "DELETE FROM addresses WHERE _id=$1"
+// ===================================================================================================//
+func (r *repository) RemoveAddress(ctx context.Context, input dto.RemoveAddress_Dto, user_id int) (string, error) {
+	addressQuery := "DELETE FROM addresses WHERE id=$1"
 	stmt, err := r.db.Prepare(addressQuery)
 	if err != nil {
 		return "", errors.New("And error occured")
@@ -149,9 +149,9 @@ func (r *repository) RemoveAddress(ctx context.Context, input dto.RemoveAddress_
 	return "", errors.New("Something weird happenned")
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (r *repository) RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id string) (string, error) {
-	query := "DELETE FROM credit_cards WHERE _id=$1"
+	query := "DELETE FROM credit_cards WHERE id=$1"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return "", errors.New("And error occured")
@@ -171,7 +171,7 @@ func (r *repository) RemoveCreditCard(ctx context.Context, input dto.RemoveCredi
 
 //===================================================================================================//
 
-func (r *repository) ToggleProductWhishlist(ctx context.Context, user_id, product_id string) error {
+func (r *repository) ToggleProductWhishlist(ctx context.Context, user_id, product_id int) error {
 	var whishlist_id string
 	selectQuery := "SELECT _id FROM whishlists WHERE user_id=$1;"
 	row := r.db.QueryRow(selectQuery, user_id)
@@ -207,8 +207,8 @@ func (r *repository) ToggleProductWhishlist(ctx context.Context, user_id, produc
 	}
 }
 
-//===================================================================================================//
-func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id string, quantity int, price float32) (string, error) {
+// ===================================================================================================//
+func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id int, quantity int, price float32) (string, error) {
 	cart_id, err := r.GetOrCreateActiveCart(ctx, user_id)
 	if err != nil {
 		return "", errors.New("Error while retrieving the user's cart.")
@@ -240,7 +240,7 @@ func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id str
 
 	// Add order to cart
 	newOrder_id := uuid.New().String()
-	insertQuery := "INSERT INTO orders (\"_id\",\"stock_id\", \"cart_id\", \"quantity\", \"price\") VALUES ($1,$2,$3,$4,$5)"
+	insertQuery := "INSERT INTO orders (\"id\",\"stock_id\", \"cart_id\", \"quantity\", \"price\") VALUES ($1,$2,$3,$4,$5)"
 	stmt, err := r.db.Prepare(insertQuery)
 	if err != nil {
 		return "", errors.New("Error while creating order.")
@@ -252,9 +252,9 @@ func (r *repository) AddProductToCart(ctx context.Context, user_id, stock_id str
 	return newOrder_id, nil
 }
 
-//===================================================================================================//
-func (r *repository) RemoveProductFromCart(ctx context.Context, order_id string) error {
-	deleteQuery := "DELETE FROM orders WHERE _id=$1"
+// ===================================================================================================//
+func (r *repository) RemoveProductFromCart(ctx context.Context, order_id int) error {
+	deleteQuery := "DELETE FROM orders WHERE id=$1"
 	stmt, err := r.db.Prepare(deleteQuery)
 	if err != nil {
 		return errors.New("Error while deleting order.")
@@ -266,10 +266,10 @@ func (r *repository) RemoveProductFromCart(ctx context.Context, order_id string)
 	return nil
 }
 
-//===================================================================================================//
-func (r *repository) IncreaseProductInCart(ctx context.Context, order_id string) error {
+// ===================================================================================================//
+func (r *repository) IncreaseProductInCart(ctx context.Context, order_id int) error {
 	// Increase order quantity
-	increaseQuery := "UPDATE orders SET quantity = quantity + 1 WHERE _id = $1;"
+	increaseQuery := "UPDATE orders SET quantity = quantity + 1 WHERE id = $1;"
 	stmt, err := r.db.Prepare(increaseQuery)
 	if err != nil {
 		return errors.New("Error while increasing the order's quantity.")
@@ -285,9 +285,9 @@ func (r *repository) IncreaseProductInCart(ctx context.Context, order_id string)
 	return nil
 }
 
-//===================================================================================================//
-func (r *repository) DecreaseProductInCart(ctx context.Context, order_id string) error {
-	increaseQuery := "UPDATE orders SET quantity = quantity + 1 WHERE _id = $1;"
+// ===================================================================================================//
+func (r *repository) DecreaseProductInCart(ctx context.Context, order_id int) error {
+	increaseQuery := "UPDATE orders SET quantity = quantity + 1 WHERE id = $1;"
 	stmt, err := r.db.Prepare(increaseQuery)
 	if err != nil {
 		return errors.New("Error while decreasing the order's quantity.")
@@ -305,8 +305,8 @@ func (r *repository) DecreaseProductInCart(ctx context.Context, order_id string)
 
 //===================================================================================================//
 
-func (r *repository) GetOrCreateActiveCart(ctx context.Context, user_id string) (string, error) {
-	query := "SELECT (\"_id\") FROM carts WHERE user_id=$1 AND state=\"active\";"
+func (r *repository) GetOrCreateActiveCart(ctx context.Context, user_id int) (string, error) {
+	query := "SELECT (\"id\") FROM carts WHERE user_id=$1 AND state=\"active\";"
 	row := r.db.QueryRow(query, user_id)
 
 	var cart_id string
@@ -315,7 +315,7 @@ func (r *repository) GetOrCreateActiveCart(ctx context.Context, user_id string) 
 	// If active cart doesn't exist for user, create a new one
 	if err != nil || cart_id == "" {
 		new_cart_id := uuid.New().String()
-		query = "INSERT INTO carts (\"_id\", \"user_id\", \"state\", \"total\") VALUES ($1,$2,$3,$4);"
+		query = "INSERT INTO carts (\"id\", \"user_id\", \"state\", \"total\") VALUES ($1,$2,$3,$4);"
 		stmt, err := r.db.Prepare(query)
 		if err != nil {
 			return "", errors.New("There was an error while creating a new cart")

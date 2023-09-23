@@ -1,10 +1,10 @@
 package domain
 
 type Product struct {
-	ID          string  `json:"_id"`
+	Id          int     `json:"id"`
 	Name        string  `json:"product_name"`
 	Price       float32 `json:"price"`
 	Description string  `json:"product_description"`
-	Subgenre    string  `json:"subgenre_id"`
-	Category    string  `json:"category_id"`
+	SubgenreId  int     `json:"subgenre_id"`
+	CategoryId  int     `json:"category_id"`
 }

@@ -1,6 +1,6 @@
 package domain
 
 type Whishlist struct {
-	ID     string `json:"_id"`
+	Id     int    `json:"id"`
 	UserID string `json:"user_id"`
 }

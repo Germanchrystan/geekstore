@@ -1,7 +1,7 @@
 package domain
 
 type Address struct {
-	ID           string  `json:"_id"`
+	Id           int     `json:"id"`
 	Street       string  `json:"street"`
 	StreetNumber float32 `json:"street_number"`
 	State        string  `json:"state"`

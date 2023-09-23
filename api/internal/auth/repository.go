@@ -55,23 +55,23 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 
 	// Retrieving User by first value
 	user := domain.User{}
-	err := row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
+	err := row.Scan(&user.Id, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
 	if err != nil {
-		return dto.Session_Dto{}, errors.New("Wrong Credentials")
+		return dto.Session_Dto{}, errors.New("wrong Credentials")
 	}
 
 	// Checking password
 	passwordError := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(loginReq.Password))
 	if passwordError != nil {
-		return dto.Session_Dto{}, errors.New("Wrong Credentials")
+		return dto.Session_Dto{}, errors.New("wrong Credentials")
 	}
 
 	// Checking booleans
 	if !user.IsActive {
-		return dto.Session_Dto{}, errors.New("You must activate this account first")
+		return dto.Session_Dto{}, errors.New("you must activate this account first")
 	}
 	if user.IsBanned {
-		return dto.Session_Dto{}, errors.New("This user is banned")
+		return dto.Session_Dto{}, errors.New("this user is banned")
 	}
 	sessionDto := dto.Session_Dto{}
 
@@ -80,16 +80,18 @@ func (r *repository) Login(ctx context.Context, loginReq dto.Login_Dto, isEmail 
 	// Retrieving addresses
 	addresses, err := r.GetAddressesByUserId(user)
 	if err != nil {
-		return dto.Session_Dto{}, errors.New("Error retrieving addresses")
+		return dto.Session_Dto{}, errors.New("error retrieving addresses")
 	}
 	// Retrieving credit cards
 	creditCards, err := r.GetCreditCardsByUserId(user)
 	if err != nil {
-		return dto.Session_Dto{}, errors.New("Error retrieving credit cards")
+		return dto.Session_Dto{}, errors.New("error retrieving credit cards")
 	}
 	// Create session
 	newSession, err := r.CreateSession(user)
-
+	if err != nil {
+		return dto.Session_Dto{}, errors.New("error creating session")
+	}
 	sessionDto.User = user
 	sessionDto.Session = newSession
 	sessionDto.Adresses = addresses
@@ -103,7 +105,7 @@ func (r *repository) GetCreditCardsByUserId(user domain.User) ([]dto.DisplayCred
 	// Retrieving credit cards
 	var creditCards []dto.DisplayCreditCard_Dto
 	creditCardsQuery := "SELECT last_code_number FROM credit_cards WHERE user_id=$1;"
-	ccRows, err := r.db.Query(creditCardsQuery, user.ID)
+	ccRows, err := r.db.Query(creditCardsQuery, user.Id)
 	if err == nil {
 		for ccRows.Next() {
 			cc := dto.DisplayCreditCard_Dto{}
@@ -120,7 +122,7 @@ func (r *repository) GetCreditCardsByUserId(user domain.User) ([]dto.DisplayCred
 func (r *repository) GetAddressesByUserId(user domain.User) ([]domain.Address, error) {
 	var addresses []domain.Address
 	addressesQuery := "SELECT * FROM addresses INNER JOIN addresses_users ON addresses_users.user_id = $1;"
-	aRows, err := r.db.Query(addressesQuery, user.ID)
+	aRows, err := r.db.Query(addressesQuery, user.Id)
 	if err == nil {
 		a := domain.Address{}
 		_ = aRows.Scan(&a.Street, &a.StreetNumber, &a.State, &a.Country, &a.Zipcode)
@@ -134,18 +136,18 @@ func (r *repository) GetAddressesByUserId(user domain.User) ([]domain.Address, e
 func (r *repository) CreateSession(user domain.User) (domain.Session, error) {
 	// Creating session
 	newSession := domain.Session{
-		ID:        uuid.New().String(),
-		UserID:    user.ID,
+		// ID:        uuid.New().String(),
+		UserID:    user.Id,
 		CreatedAt: time.Now().GoString(),
 	}
 	sessionQuery := "INSERT INTO sessions(\"_id\", \"user_id\", \"created_at\") VALUES ($1, $2, $3);"
 	stmt, err := r.db.Prepare(sessionQuery)
 	if err != nil {
-		return domain.Session{}, errors.New("Unable to create session")
+		return domain.Session{}, errors.New("unable to create session")
 	}
-	_, err = stmt.Exec(newSession.ID, newSession.UserID, newSession.CreatedAt)
+	_, err = stmt.Exec(newSession.Id, newSession.UserID, newSession.CreatedAt)
 	if err != nil {
-		return domain.Session{}, errors.New("Unable to create session")
+		return domain.Session{}, errors.New("unable to create session")
 	}
 	return newSession, nil
 }
@@ -157,11 +159,11 @@ func (r *repository) Register(ctx context.Context, registerDto dto.Register_Dto)
 	query := "INSERT INTO users(\"_id\", \"username\", \"firstname\", \"lastname\", \"email\", \"hashed_password\", \"is_active\", \"is_admin\", \"is_banned\") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return "", errors.New("There was an error while communicating to the database")
+		return "", errors.New("there was an error while communicating to the database")
 	}
 	_, err = stmt.Exec(id, registerDto.Username, registerDto.FirstName, registerDto.LastName, registerDto.Email, registerDto.Password, false, true, false)
 	if err != nil {
-		return "", errors.New("There was an error while executing the command")
+		return "", errors.New("there was an error while executing the command")
 	}
 	return id, err
 }
@@ -193,7 +195,7 @@ func (r *repository) IsUserUnique(ctx context.Context, email string, username st
 	row := r.db.QueryRow(checkUniqueEmailQuery, email)
 	_ = row.Scan(&amountUsers)
 	if amountUsers > 0 {
-		return errors.New("E-mail already taken")
+		return errors.New("e-mail already taken")
 	}
 
 	// Check username is not repeated
@@ -201,7 +203,7 @@ func (r *repository) IsUserUnique(ctx context.Context, email string, username st
 	row = r.db.QueryRow(checkUniqueUsernameQuery, username)
 	_ = row.Scan(&amountUsers)
 	if amountUsers > 0 {
-		return errors.New("Username already taken")
+		return errors.New("username already taken")
 	}
 	return nil
 }

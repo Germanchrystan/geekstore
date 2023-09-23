@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/Germanchrystan/GeekStore/api/internal/domain"
 	"github.com/gin-gonic/gin"
@@ -16,19 +17,19 @@ func respondWithError(c *gin.Context, code int, message interface{}) {
 	c.AbortWithStatusJSON(code, gin.H{"error": message})
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 type middlewareRepository struct {
 	db *sql.DB
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func NewMiddlewareRepository(db *sql.DB) Middleware {
 	return &middlewareRepository{
 		db: db,
 	}
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := ctx.Request.Header.Get("session_id")
@@ -62,7 +63,7 @@ func (m *middlewareRepository) IsAdminUserSession() gin.HandlerFunc {
 	}
 }
 
-//===================================================================================================//
+// ===================================================================================================//
 func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := ctx.Request.Header.Get("session_id")
@@ -79,14 +80,14 @@ func (m *middlewareRepository) IsUserSession() gin.HandlerFunc {
 		userQuery := "SELECT * FROM users WHERE _id=$1"
 		user := domain.User{}
 		row = m.db.QueryRow(userQuery, userID)
-		err = row.Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
+		err = row.Scan(&user.Id, &user.Username, &user.FirstName, &user.LastName, &user.Email, &user.IsActive, &user.HashedPassword, &user.IsAdmin, &user.IsBanned)
 		if err != nil {
 			respondWithError(ctx, 302, "Wrong credentials")
 			return
 		}
 
 		if user.IsActive {
-			ctx.Writer.Header().Set("user_id", user.ID)
+			ctx.Writer.Header().Set("user_id", strconv.Itoa(user.Id))
 			ctx.Next()
 		} else {
 			respondWithError(ctx, 401, "User is not active")
