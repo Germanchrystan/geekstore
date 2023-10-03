@@ -43,12 +43,10 @@ func NewRepository(db *sql.DB) UserInterface {
 }
 
 // ===================================================================================================//
-func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto, user_id int) (domain.Address, error) {
+func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto, userId int) (domain.Address, error) {
 	// Creating Address
-	// address_id := uuid.New().String()
 	newAddress := domain.Address{
-		//Id:           address_id,
-		Street:       input.State,
+		Street:       input.Street,
 		StreetNumber: input.StreetNumber,
 		State:        input.State,
 		Country:      input.Country,
@@ -59,7 +57,8 @@ func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto,
 	if err != nil {
 		return domain.Address{}, errors.New("An error occured")
 	}
-	_, err = stmt.Exec(
+
+	res, err := stmt.Exec(
 		newAddress.Id,
 		newAddress.Street,
 		newAddress.StreetNumber,
@@ -67,17 +66,22 @@ func (r *repository) AddAddress(ctx context.Context, input dto.InputAddress_Dto,
 		newAddress.Zipcode,
 	)
 
+	addressId, err := res.LastInsertId()
 	if err != nil {
 		return domain.Address{}, errors.New("An error occured")
 	}
+
+	if err != nil {
+		return domain.Address{}, errors.New("An error occured")
+	}
+
 	//Creating relation between address and user
-	address_user_id := uuid.New().String()
-	addressUserQuery := "INSERT INTO address_user(\"id\", \"user_id\", \"address_id\") VALUES($1,$2,$3)"
+	addressUserQuery := "INSERT INTO address_user(\"user_id\", \"address_id\") VALUES($1,$2)"
 	stmt, err = r.db.Prepare(addressUserQuery)
 	if err != nil {
 		return domain.Address{}, errors.New("An error occured")
 	}
-	_, err = stmt.Exec(address_user_id, user_id, address_id)
+	_, err = stmt.Exec(userId, addressId)
 	if err != nil {
 		return domain.Address{}, errors.New("An error occured")
 	}
@@ -94,7 +98,6 @@ func (r *repository) AddCreditCard(ctx context.Context, input dto.InputCreditCar
 	lastCodeNumbersInt, _ := strconv.Atoi(lastCodeNumbersString)
 	// Creating new credit card struct
 	newCreditCard := domain.CreditCard{
-		// ID:              uuid.New().String(),
 		UserID:          user_id,
 		HashedData:      string(hashedData),
 		LastCodeNumbers: lastCodeNumbersInt,
@@ -150,7 +153,7 @@ func (r *repository) RemoveAddress(ctx context.Context, input dto.RemoveAddress_
 }
 
 // ===================================================================================================//
-func (r *repository) RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id string) (string, error) {
+func (r *repository) RemoveCreditCard(ctx context.Context, input dto.RemoveCreditCard_Dto, user_id int) (string, error) {
 	query := "DELETE FROM credit_cards WHERE id=$1"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
